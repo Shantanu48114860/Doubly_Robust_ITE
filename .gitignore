@@ -1,0 +1,11 @@
+
+*.iml
+*.xml
+*.pt
+*.pyc
+__pycache__
+*.npz
+*.npz.zip
+checkpoint/InfoGAN/MNIST/model_final_MNIST
+*.gz
+notebooks/MNIST/raw/train-labels-idx1-ubyte
