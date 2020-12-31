@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
-from IHDP.DRNet_Model import DRNetPhi, DRNetH_Y1, DRNetH_Y0, pi_net, mu_net
+from DRNet_Model import DRNetPhi, DRNetH_Y1, DRNetH_Y0, pi_net, mu_net
 
 
 class DRNet_Manager:

@@ -3,11 +3,11 @@ from datetime import date
 
 import numpy as np
 
-from IHDP.Constants import Constants
-from IHDP.DR_Net_Manager import DRNet_Manager
-from IHDP.Metrics import Metrics
-from IHDP.Utils import Utils
-from IHDP.dataloader import DataLoader
+from Constants import Constants
+from DR_Net_Manager import DRNet_Manager
+from Metrics import Metrics
+from Utils import Utils
+from dataloader import DataLoader
 
 
 class Experiments:

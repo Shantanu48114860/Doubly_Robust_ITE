@@ -1,6 +1,6 @@
 import numpy as np
 
-from IHDP.Utils import Utils
+from Utils import Utils
 
 
 class DataLoader:
