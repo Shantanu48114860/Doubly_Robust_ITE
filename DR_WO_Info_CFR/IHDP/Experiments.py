@@ -115,7 +115,7 @@ class Experiments:
         run_parameters = {}
         if self.running_mode == "original_data":
             run_parameters["input_nodes"] = 25
-            run_parameters["consolidated_file_path"] = "./DR_WO_Info_CFR/IHDP/MSE/Results_consolidated.csv"
+            run_parameters["consolidated_file_path"] = "MSE/Results_consolidated.csv"
 
             # NN
             run_parameters["nn_prop_file"] = "./MSE/NN_Prop_score_{0}.csv"
