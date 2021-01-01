@@ -18,6 +18,7 @@ class Experiments:
         self.np_test = None
 
     def run_all_experiments(self, train_path, test_path, iterations):
+        print("iterations: ", iterations)
         device = Utils.get_device()
         print(device)
         results_list = []
