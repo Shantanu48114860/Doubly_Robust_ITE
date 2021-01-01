@@ -18,7 +18,9 @@ class Experiments:
         self.np_test = None
 
     def run_all_experiments(self, train_path, test_path, iterations):
+        split_size = 0.9
         print("iterations: ", iterations)
+        print("split_size: ", split_size)
         device = Utils.get_device()
         print(device)
         results_list = []
@@ -39,7 +41,7 @@ class Experiments:
             np_train_X, np_train_T, np_train_yf, np_train_ycf, \
             np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
                 self.dL.load_train_test_ihdp_random(csv_path,
-                                                    0.9)
+                                                    split_size)
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
             drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
                                           shared_nodes=Constants.DRNET_SHARED_NODES,
