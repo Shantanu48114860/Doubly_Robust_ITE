@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -137,13 +136,14 @@ class DRNet_Manager:
         _data_loader = torch.utils.data.DataLoader(eval_set,
                                                    shuffle=False)
 
+        y_f_true_list = []
         y1_hat_list = []
         y0_hat_list = []
-        y1_true_list = []
-        y0_true_list = []
+        e_list = []
+        T_list = []
 
         for batch in _data_loader:
-            covariates_X, T, yf, ycf = batch
+            covariates_X, T, e, y_f = batch
             covariates_X = covariates_X.to(device)
             y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
             y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
@@ -151,15 +151,14 @@ class DRNet_Manager:
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())
 
-            y1_true = T * yf + (1 - T) * ycf
-            y0_true = (1 - T) * yf + T * ycf
-
-            y1_true_list.append(y1_true.item())
-            y0_true_list.append(y0_true.item())
+            y_f_true_list.append(y_f.item())
+            e_list.append(e.item())
+            T_list.append(T.item())
 
         return {
-            "y1_hat_list": np.array(y1_hat_list),
-            "y0_hat_list": np.array(y0_hat_list),
-            "y1_true_list": np.array(y1_true_list),
-            "y0_true_list": np.array(y0_true_list)
+            "y1_hat_list": y1_hat_list,
+            "y0_hat_list": y0_hat_list,
+            "yf_list": y_f_true_list,
+            "e_list": e_list,
+            "T_list": T_list
         }

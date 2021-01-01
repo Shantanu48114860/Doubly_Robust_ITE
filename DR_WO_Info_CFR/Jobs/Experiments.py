@@ -20,6 +20,7 @@ class Experiments:
     def run_all_experiments(self, train_path, test_path, iterations):
         device = Utils.get_device()
         print(device)
+        print("iterations", iterations)
         results_list = []
 
         run_parameters = self.__get_run_parameters()
@@ -56,58 +57,64 @@ class Experiments:
             dr_eval = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
-            drnet_PEHE, drnet_ATE_metric = \
+            drnet_ate_pred, drnet_att_pred, drnet_bias_att, drnet_atc_pred, \
+            drnet_policy_value, drnet_policy_risk, drnet_err_fact = \
                 self.__process_evaluated_metric(
                     dr_eval["y1_hat_list"],
                     dr_eval["y0_hat_list"],
-                    dr_eval["y1_true_list"],
-                    dr_eval["y0_true_list"])
+                    dr_eval["yf_list"],
+                    dr_eval["e_list"],
+                    dr_eval["T_list"])
 
-            print("drnet_PEHE: ", drnet_PEHE)
-            print("drnet_ATE_metric: ", drnet_ATE_metric)
+            print("drnet_bias_att: ", drnet_bias_att)
+            print("drnet_policy_risk: ", drnet_policy_risk)
 
             print("---" * 20)
 
             result_dict = OrderedDict()
             result_dict["iter_id"] = iter_id
 
-            result_dict["drnet_PEHE"] = drnet_PEHE
-            result_dict["drnet_ATE_metric"] = drnet_ATE_metric
+            result_dict["drnet_ate_pred"] = drnet_ate_pred
+            result_dict["drnet_att_pred"] = drnet_att_pred
+            result_dict["drnet_bias_att"] = drnet_bias_att
+            result_dict["drnet_atc_pred"] = drnet_atc_pred
+            result_dict["drnet_policy_value"] = drnet_policy_value
+            result_dict["drnet_policy_risk"] = drnet_policy_risk
+            result_dict["drnet_err_fact"] = drnet_err_fact
 
             file1.write("\nToday's date: {0}\n".format(date.today()))
-            file1.write("Iter: {0}, PEHE_DR_NET: {1}, ATE_DR_NET: {2}, \n"
-                        .format(iter_id, drnet_PEHE,
-                                drnet_ATE_metric))
+            file1.write("Iter: {0}, drnet_bias_att: {1}, drnet_policy_risk: {2}, \n"
+                        .format(iter_id, drnet_bias_att,
+                                drnet_policy_risk))
             results_list.append(result_dict)
 
-        PEHE_set_drnet = []
-        ATE_Metric_set_drnet = []
+        drnet_policy_risk_set = []
+        drnet_bias_att_set = []
 
         for result in results_list:
-            PEHE_set_drnet.append(result["drnet_PEHE"])
-            ATE_Metric_set_drnet.append(result["drnet_ATE_metric"])
+            drnet_policy_risk_set.append(result["drnet_policy_risk"])
+            drnet_bias_att_set.append(result["drnet_bias_att"])
 
-        PEHE_set_drnet_mean = np.mean(np.array(PEHE_set_drnet))
-        PEHE_set_drnet_std = np.std(PEHE_set_drnet)
-        ATE_Metric_set_drnet_mean = np.mean(np.array(ATE_Metric_set_drnet))
-        ATE_Metric_set_drnet_std = np.std(ATE_Metric_set_drnet)
+        drnet_policy_risk_mean = np.mean(np.array(drnet_policy_risk_set))
+        drnet_policy_risk_std = np.std(drnet_policy_risk_set)
+        drnet_bias_att_mean = np.mean(np.array(drnet_bias_att_set))
+        drnet_bias_att_std = np.std(drnet_bias_att_set)
 
         print("----------------- !!DR_Net Models(Results) !! ------------------------")
         print("--" * 20)
-        print("DR_NET, PEHE: {0}, SD: {1}"
-              .format(PEHE_set_drnet_mean, PEHE_set_drnet_std))
-        print("DR_NET, ATE Metric: {0}, SD: {1}"
-              .format(ATE_Metric_set_drnet_mean, ATE_Metric_set_drnet_std))
+        print("DR_NET, policy_risk: {0}, SD: {1}"
+              .format(drnet_policy_risk_mean, drnet_policy_risk_std))
+        print("DR_NET, bias_att: {0}, SD: {1}"
+              .format(drnet_bias_att_mean, drnet_bias_att_std))
         print("--" * 20)
 
         file1.write("\n#####################")
 
         file1.write("\n---------------------")
-        file1.write("\nDR_NET, PEHE: {0}, SD: {1}"
-                    .format(PEHE_set_drnet_mean, PEHE_set_drnet_std))
-        file1.write("\nDR_NET, ATE Metric: {0}, SD: {1}"
-                    .format(ATE_Metric_set_drnet_mean,
-                            ATE_Metric_set_drnet_std))
+        file1.write("\nDR_NET, policy_risk: {0}, SD: {1}"
+                    .format(drnet_policy_risk_mean, drnet_policy_risk_std))
+        file1.write("\nDR_NET, bias_att: {0}, SD: {1}"
+                    .format(drnet_bias_att_mean, drnet_bias_att_std))
 
         Utils.write_to_csv(run_parameters["consolidated_file_path"], results_list)
 
@@ -184,19 +191,65 @@ class Experiments:
             return self.dL.load_train_test_jobs(train_path, test_path, iter_id)
 
     @staticmethod
-    def __process_evaluated_metric(y1_hat, y0_hat, y1_true, y0_true):
-        y1_true_np = np.array(y1_true)
-        y0_true_np = np.array(y0_true)
+    def cal_policy_val(t, yf, eff_pred):
+        #  policy_val(t[e>0], yf[e>0], eff_pred[e>0], compute_policy_curve)
+
+        if np.any(np.isnan(eff_pred)):
+            return np.nan, np.nan
+
+        policy = eff_pred > 0
+        treat_overlap = (policy == t) * (t > 0)
+        control_overlap = (policy == t) * (t < 1)
+
+        if np.sum(treat_overlap) == 0:
+            treat_value = 0
+        else:
+            treat_value = np.mean(yf[treat_overlap])
+
+        if np.sum(control_overlap) == 0:
+            control_value = 0
+        else:
+            control_value = np.mean(yf[control_overlap])
+
+        pit = np.mean(policy)
+        policy_value = pit * treat_value + (1 - pit) * control_value
+
+        return policy_value
+
+    def __process_evaluated_metric(self, y1_hat, y0_hat, y_f, e, T):
         y1_hat_np = np.array(y1_hat)
         y0_hat_np = np.array(y0_hat)
+        e_np = np.array(e)
+        t_np = np.array(T)
+        np_y_f = np.array(y_f)
 
-        PEHE = Metrics.PEHE(y1_true_np, y0_true_np, y1_hat_np, y0_hat_np)
-        ATE = Metrics.ATE(y1_true_np, y0_true_np, y1_hat_np, y0_hat_np)
-        print("PEHE: {0}".format(PEHE))
-        print("ATE: {0}".format(ATE))
+        y1_hat_np_b = 1.0 * (y1_hat_np > 0.5)
+        y0_hat_np_b = 1.0 * (y0_hat_np > 0.5)
+
+        err_fact = np.mean(np.abs(y1_hat_np_b - np_y_f))
+        att = np.mean(np_y_f[t_np > 0]) - np.mean(np_y_f[(1 - t_np + e_np) > 1])
+
+        eff_pred = y0_hat_np - y1_hat_np
+        eff_pred[t_np > 0] = -eff_pred[t_np > 0]
+
+        ate_pred = np.mean(eff_pred[e_np > 0])
+        atc_pred = np.mean(eff_pred[(1 - t_np + e_np) > 1])
+
+        att_pred = np.mean(eff_pred[(t_np + e_np) > 1])
+        bias_att = np.abs(att_pred - att)
+
+        policy_value = self.cal_policy_val(t_np[e_np > 0], np_y_f[e_np > 0],
+                                           eff_pred[e_np > 0])
+
+        print("bias_att: " + str(bias_att))
+        print("policy_value: " + str(policy_value))
+        print("Risk: " + str(1 - policy_value))
+        print("atc_pred: " + str(atc_pred))
+        print("att_pred: " + str(att_pred))
+        print("err_fact: " + str(err_fact))
 
         # Utils.write_to_csv(ite_csv_path.format(iter_id), ite_dict)
-        return PEHE, ATE
+        return ate_pred, att_pred, bias_att, atc_pred, policy_value, 1 - policy_value, err_fact
 
     # def get_consolidated_file_name(self, ps_model_type):
     #     if ps_model_type == Constants.PS_MODEL_NN:
