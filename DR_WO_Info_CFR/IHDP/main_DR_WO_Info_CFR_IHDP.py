@@ -9,4 +9,4 @@ if __name__ == '__main__':
     running_mode = "original_data"
     original_exp = Experiments(running_mode)
     original_exp.run_all_experiments(train_path, test_path,
-                                     iterations=3)
+                                     iterations=1000)
