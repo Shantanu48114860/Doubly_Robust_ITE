@@ -1,6 +1,6 @@
 import numpy as np
 
-from Jobs.Utils import Utils
+from Utils import Utils
 
 
 class DataLoader:

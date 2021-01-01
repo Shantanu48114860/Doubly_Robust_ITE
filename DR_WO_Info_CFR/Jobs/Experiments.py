@@ -3,11 +3,11 @@ from datetime import date
 
 import numpy as np
 
-from Jobs.Constants import Constants
-from Jobs.DR_Net_Manager import DRNet_Manager
-from Jobs.Metrics import Metrics
-from Jobs.Utils import Utils
-from Jobs.dataloader import DataLoader
+from Constants import Constants
+from DR_Net_Manager import DRNet_Manager
+from Metrics import Metrics
+from Utils import Utils
+from dataloader import DataLoader
 
 
 class Experiments:
@@ -30,18 +30,18 @@ class Experiments:
             print("iter_id: {0}".format(iter_id))
             print("--" * 20)
             input_nodes = run_parameters["input_nodes"]
-            np_train_X, np_train_T, np_train_yf, np_train_ycf, \
-            np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = self.__load_data(train_path,
-                                                                                                 test_path,
-                                                                                                 iter_id)
+            np_train_X, np_train_T, np_train_e, np_train_yf, \
+            np_test_X, np_test_T, np_test_e, np_test_yf = self.__load_data(train_path,
+                                                                           test_path,
+                                                                           iter_id)
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
             drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
                                           shared_nodes=Constants.DRNET_SHARED_NODES,
                                           outcome_nodes=Constants.DRNET_OUTPUT_NODES,
                                           device=device)
 
-            tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
-            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
+            tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_e, np_train_yf)
+            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_e, np_test_yf)
             _train_parameters = {
                 "epochs": Constants.DRNET_EPOCHS,
                 "lr": Constants.DRNET_LR,
@@ -115,10 +115,10 @@ class Experiments:
         run_parameters = {}
         if self.running_mode == "original_data":
             run_parameters["input_nodes"] = 25
-            run_parameters["consolidated_file_path"] = "./DR_WO_Info_CFR/IHDP/MSE/Results_consolidated.csv"
+            run_parameters["consolidated_file_path"] = "MSE/Results_consolidated.csv"
 
             # NN
-            run_parameters["nn_prop_file"] = "./MSE/NN_Prop_score_{0}.csv"
+            run_parameters["nn_prop_file"] = "MSE/NN_Prop_score_{0}.csv"
 
             run_parameters["DCN_PD"] = "./MSE/ITE/ITE_DCN_PD_iter_{0}.csv"
             run_parameters["DCN_PD_02"] = "./MSE/ITE/ITE_DCN_PD_02_iter_{0}.csv"

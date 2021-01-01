@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
-from Jobs.DRNet_Model import DRNetPhi, DRNetH_Y1, DRNetH_Y0, pi_net, mu_net
+from DRNet_Model import DRNetPhi, DRNetH_Y1, DRNetH_Y0, pi_net, mu_net
 
 
 class DRNet_Manager:
@@ -63,7 +63,7 @@ class DRNet_Manager:
                 self.pi_net.train()
                 self.mu_net.train()
                 for batch in train_data_loader:
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, e, y_f = batch
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
 
