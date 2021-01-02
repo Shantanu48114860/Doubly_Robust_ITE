@@ -17,14 +17,14 @@ class Experiments:
         self.np_train = None
         self.np_test = None
 
-    def run_all_experiments(self, train_path, test_path, iterations):
-        split_size = 0.9
+    def run_all_experiments(self, iterations):
+        split_size = 0.8
+        csv_path = "Dataset/Twin_data.csv"
         print("iterations: ", iterations)
         print("split_size: ", split_size)
         device = Utils.get_device()
         print(device)
         results_list = []
-        csv_path = "Dataset/ihdp_sample.csv"
         run_parameters = self.__get_run_parameters()
         print(str(run_parameters["summary_file_name"]))
         file1 = open(run_parameters["summary_file_name"], "w")
@@ -123,7 +123,7 @@ class Experiments:
         run_parameters = {}
         if self.running_mode == "original_data":
             run_parameters["input_nodes"] = 25
-            run_parameters["consolidated_file_path"] = "MSE/Results_consolidated_best.csv"
+            run_parameters["consolidated_file_path"] = "MSE/Results_consolidated.csv"
 
             # NN
             run_parameters["nn_prop_file"] = "./MSE/NN_Prop_score_{0}.csv"
@@ -173,12 +173,12 @@ class Experiments:
 
             run_parameters["TARNET_PM_GAN"] = "./MSE/ITE/ITE_TARNET_PM_GAN_iter_{0}.csv"
 
-            run_parameters["summary_file_name"] = "DR_WO_Info_CFR_IHDP_best.txt"
+            run_parameters["summary_file_name"] = "DR_WO_Info_CFR_Twins.txt"
             run_parameters["is_synthetic"] = False
 
         elif self.running_mode == "synthetic_data":
             run_parameters["input_nodes"] = 75
-            # run_parameters["consolidated_file_path"] = "./MSE_Augmented/Results_consolidated_best.csv"
+            # run_parameters["consolidated_file_path"] = "./MSE_Augmented/Results_consolidated.csv"
 
             run_parameters["is_synthetic"] = True
 
