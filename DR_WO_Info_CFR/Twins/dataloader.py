@@ -32,7 +32,7 @@ class DataLoader:
         # print(np_val_yf.shape)
         # print(np_val_ycf.shape)
 
-        print("Numpy Temp Statistics:")
+        print("Numpy test Statistics:")
         print(np_test_X.shape)
         print(np_test_T.shape)
 
