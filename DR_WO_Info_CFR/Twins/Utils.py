@@ -151,7 +151,7 @@ class EarlyStopping_DCN:
         if self.best_score is None:
             self.best_score = score
             self.save_checkpoint(val_loss, dr_net_shared, dr_net_y1_model, dr_net_y0_model,
-                 pi_net_model, mu_net_model)
+                                 pi_net_model, mu_net_model)
         elif score < self.best_score + self.delta:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
@@ -160,11 +160,11 @@ class EarlyStopping_DCN:
         else:
             self.best_score = score
             self.save_checkpoint(val_loss, dr_net_shared, dr_net_y1_model, dr_net_y0_model,
-                 pi_net_model, mu_net_model)
+                                 pi_net_model, mu_net_model)
             self.counter = 0
 
     def save_checkpoint(self, val_loss, dr_net_shared, dr_net_y1_model, dr_net_y0_model,
-                 pi_net_model, mu_net_model):
+                        pi_net_model, mu_net_model):
         if self.verbose:
             self.trace_func(
                 f'Validation loss decreased ({self.val_loss_min} --> {val_loss}).  Saving model ...')

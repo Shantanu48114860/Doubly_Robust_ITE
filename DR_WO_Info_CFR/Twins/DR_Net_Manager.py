@@ -49,7 +49,7 @@ class DRNet_Manager:
         optimizer_pi = optim.Adam(self.pi_net.parameters(), lr=lr, weight_decay=weight_decay)
         optimizer_mu = optim.Adam(self.mu_net.parameters(), lr=lr, weight_decay=weight_decay)
 
-        loss_F_MSE = nn.MSELoss()
+        loss_F_BCE = nn.BCELoss()
         loss_DR_MSE = nn.MSELoss()
         lossBCE = nn.BCELoss()
 
@@ -100,12 +100,12 @@ class DRNet_Manager:
 
                     loss_pi = lossBCE(pi, T_float).to(device)
                     if torch.cuda.is_available():
-                        loss_F = loss_F_MSE(y_f_hat.float().cuda(),
+                        loss_F = loss_F_BCE(y_f_hat.float().cuda(),
                                             y_f.float().cuda()).to(device)
                         loss_DR = loss_DR_MSE(y_f_dr.float().cuda(),
                                               y_f.float().cuda()).to(device)
                     else:
-                        loss_F = loss_F_MSE(y_f_hat.float(),
+                        loss_F = loss_F_BCE(y_f_hat.float(),
                                             y_f.float()).to(device)
                         loss_DR = loss_DR_MSE(y_f_dr.float(),
                                               y_f.float()).to(device)
@@ -145,8 +145,8 @@ class DRNet_Manager:
         for batch in _data_loader:
             covariates_X, T, yf, ycf = batch
             covariates_X = covariates_X.to(device)
-            y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
-            y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+            y1_hat = torch.round(self.dr_net_h_y1(self.dr_net_phi(covariates_X)))
+            y0_hat = torch.round(self.dr_net_h_y0(self.dr_net_phi(covariates_X)))
 
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())

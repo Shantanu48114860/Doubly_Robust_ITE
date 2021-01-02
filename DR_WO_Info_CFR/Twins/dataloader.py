@@ -5,11 +5,11 @@ from Utils import Utils
 
 
 class DataLoader:
-    def load_train_test_ihdp_random(self, csv_path, split_size=0.8):
+    def load_train_test_twins_random(self, csv_path, split_size=0.8):
         # print(".. Data Loading ..")
         # data load
-        np_covariates_X, np_treatment_Y = self.preprocess_dataset_for_training(csv_path)
-        np_covariates_X, np_treatment_T, np_outcomes_Y_f, np_outcomes_Y_cf = self.__convert_to_numpy(df)
+        np_covariates_X, np_treatment_T, np_outcomes_Y_f, np_outcomes_Y_cf \
+            = self.preprocess_dataset_for_training(csv_path)
         print("ps_np_covariates_X: {0}".format(np_covariates_X.shape))
         print("ps_np_treatment_Y: {0}".format(np_treatment_T.shape))
 
@@ -61,12 +61,12 @@ class DataLoader:
         t = np.random.binomial(1, prob_t, [no, 1])
         t = t.reshape([no, ])
         t = Utils.convert_to_col_vector(t)
-        y_f = np.transpose(t) * potential_y[:, 1] + np.transpose(1 - t) * potential_y[:, 0]
-        y_cf = np.transpose(1 - t) * potential_y[:, 1] + np.transpose(t) * potential_y[:, 0]
 
+        y_f = np.transpose(t) * potential_y[:, 1] + np.transpose(1 - t) * potential_y[:, 0]
         y_f = np.reshape(np.transpose(y_f), [no, ])
         y_f = Utils.convert_to_col_vector(y_f)
 
+        y_cf = np.transpose(1 - t) * potential_y[:, 1] + np.transpose(t) * potential_y[:, 0]
         y_cf = np.reshape(np.transpose(y_cf), [no, ])
         y_cf = Utils.convert_to_col_vector(y_cf)
 
@@ -76,8 +76,9 @@ class DataLoader:
         print(y_cf.shape)
         print(t.shape)
 
-        print(t[0])
-        print(y_f[0])
-        print(y_cf[0])
+        # print(t[1])
+        # print(potential_y[1])
+        # print(y_f[1])
+        # print(y_cf[1])
 
         return x, t, y_f, y_cf
