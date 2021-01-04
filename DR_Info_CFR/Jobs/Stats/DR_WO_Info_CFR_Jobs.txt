@@ -1,0 +1,35 @@
+
+Today's date: 2021-01-01
+Iter: 0, drnet_bias_att: 0.08908365947150049, drnet_policy_risk: 0.33100766103814894, 
+
+Today's date: 2021-01-01
+Iter: 1, drnet_bias_att: 0.3492660223728134, drnet_policy_risk: 0.36557886557886565, 
+
+Today's date: 2021-01-01
+Iter: 2, drnet_bias_att: 0.053260370088359155, drnet_policy_risk: 0.31418918918918926, 
+
+Today's date: 2021-01-01
+Iter: 3, drnet_bias_att: 0.06453728790558515, drnet_policy_risk: 0.26108374384236455, 
+
+Today's date: 2021-01-01
+Iter: 4, drnet_bias_att: 0.06342592988113754, drnet_policy_risk: 0.2183641975308641, 
+
+Today's date: 2021-01-01
+Iter: 5, drnet_bias_att: 0.036086893803861354, drnet_policy_risk: 0.2736585365853659, 
+
+Today's date: 2021-01-01
+Iter: 6, drnet_bias_att: 0.012675522654144906, drnet_policy_risk: 0.3857570806100218, 
+
+Today's date: 2021-01-01
+Iter: 7, drnet_bias_att: 0.08825526751596977, drnet_policy_risk: 0.3443627450980392, 
+
+Today's date: 2021-01-01
+Iter: 8, drnet_bias_att: 0.05643375462543178, drnet_policy_risk: 0.3311627906976744, 
+
+Today's date: 2021-01-01
+Iter: 9, drnet_bias_att: 0.07736810595079888, drnet_policy_risk: 0.28948412698412684, 
+
+#####################
+---------------------
+DR_NET, policy_risk: 0.30146489371546604, SD: 0.04840014765898585
+DR_NET, bias_att: 0.07903928142696024, SD: 0.0894929109119436
