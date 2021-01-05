@@ -3,9 +3,9 @@ from datetime import date
 
 import numpy as np
 
+from Adversarial_Manager import Adversarial_Manager
 from Constants import Constants
 from DR_Net_Manager import DRNet_Manager
-from Metrics import Metrics
 from Utils import Utils
 from dataloader import DataLoader
 
@@ -30,19 +30,56 @@ class Experiments:
             print("--" * 20)
             print("iter_id: {0}".format(iter_id))
             print("--" * 20)
-            input_nodes = run_parameters["input_nodes"]
             np_train_X, np_train_T, np_train_e, np_train_yf, \
             np_test_X, np_test_T, np_test_e, np_test_yf = self.__load_data(train_path,
                                                                            test_path,
                                                                            iter_id)
+            tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_e, np_train_yf)
+            adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,
+                                              encoder_shared_nodes=Constants.Encoder_shared_nodes,
+                                              encoder_x_out_nodes=Constants.Encoder_x_nodes,
+                                              encoder_t_out_nodes=Constants.Encoder_t_nodes,
+                                              encoder_yf_out_nodes=Constants.Encoder_yf_nodes,
+                                              encoder_ycf_out_nodes=Constants.Encoder_ycf_nodes,
+                                              decoder_in_nodes=Constants.Decoder_in_nodes,
+                                              decoder_shared_nodes=Constants.Decoder_shared_nodes,
+                                              decoder_out_nodes=Constants.Decoder_out_nodes,
+                                              gen_in_nodes=Constants.Info_GAN_Gen_in_nodes,
+                                              gen_shared_nodes=Constants.Info_GAN_Gen_shared_nodes,
+                                              gen_out_nodes=Constants.Info_GAN_Gen_out_nodes,
+                                              dis_in_nodes=Constants.Info_GAN_Dis_in_nodes,
+                                              dis_shared_nodes=Constants.Info_GAN_Dis_shared_nodes,
+                                              dis_out_nodes=Constants.Info_GAN_Dis_out_nodes,
+                                              Q_in_nodes=Constants.Info_GAN_Q_in_nodes,
+                                              Q_shared_nodes=Constants.Info_GAN_Q_shared_nodes,
+                                              Q_out_nodes=Constants.Info_GAN_Q_out_nodes,
+                                              device=device)
+
+            _train_parameters = {
+                "epochs": Constants.Adversarial_epochs,
+                "vae_lr": Constants.Adversarial_VAE_LR,
+                "gan_lr": Constants.INFO_GAN_LR,
+                "lambda": Constants.Adversarial_LAMBDA,
+                "batch_size": Constants.Adversarial_BATCH_SIZE,
+                "INFO_GAN_LAMBDA": Constants.INFO_GAN_LAMBDA,
+                "INFO_GAN_ALPHA": Constants.INFO_GAN_ALPHA,
+                "shuffle": True,
+                "VAE_BETA": Constants.VAE_BETA,
+                "train_dataset": tensor_train
+            }
+            print("Adversarial Model Training started....")
+            adv_manager.train_adversarial_model(_train_parameters, device)
+            np_y_cf = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
+            print("Adversarial Model Training ended....")
+
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
+            tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf)
+            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_e, np_test_yf)
             drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
                                           shared_nodes=Constants.DRNET_SHARED_NODES,
                                           outcome_nodes=Constants.DRNET_OUTPUT_NODES,
                                           device=device)
 
-            tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_e, np_train_yf)
-            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_e, np_test_yf)
             _train_parameters = {
                 "epochs": Constants.DRNET_EPOCHS,
                 "lr": Constants.DRNET_LR,
@@ -51,49 +88,41 @@ class Experiments:
                 "shuffle": True,
                 "ALPHA": Constants.ALPHA,
                 "BETA": Constants.BETA,
-                "train_dataset": tensor_train
+                "train_dataset": tensor_train_dr
             }
             drnet_manager.train_DR_NET(_train_parameters, device)
             dr_eval = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
-            drnet_ate_pred, drnet_att_pred, drnet_bias_att, drnet_atc_pred, \
-            drnet_policy_value, drnet_policy_risk, drnet_err_fact = \
-                self.__process_evaluated_metric(
-                    dr_eval["y1_hat_list"],
-                    dr_eval["y0_hat_list"],
-                    dr_eval["yf_list"],
-                    dr_eval["e_list"],
-                    dr_eval["T_list"])
 
-            print("drnet_bias_att: ", drnet_bias_att)
-            print("drnet_policy_risk: ", drnet_policy_risk)
+            [RPol, ATT] = self.Perf_RPol_ATT(Utils.convert_to_col_vector(np.array(dr_eval["T_list"])),
+                                             Utils.convert_to_col_vector(np.array(dr_eval["yf_list"])),
+                                             Utils.convert_to_col_vector(np.array(dr_eval["y1_hat_list"])),
+                                             Utils.convert_to_col_vector(np.array(dr_eval["y0_hat_list"])))
+            print("--------")
+            print("RPol: ", RPol)
+            print("ATT: ", ATT)
 
             print("---" * 20)
 
             result_dict = OrderedDict()
             result_dict["iter_id"] = iter_id
 
-            result_dict["drnet_ate_pred"] = drnet_ate_pred
-            result_dict["drnet_att_pred"] = drnet_att_pred
-            result_dict["drnet_bias_att"] = drnet_bias_att
-            result_dict["drnet_atc_pred"] = drnet_atc_pred
-            result_dict["drnet_policy_value"] = drnet_policy_value
-            result_dict["drnet_policy_risk"] = drnet_policy_risk
-            result_dict["drnet_err_fact"] = drnet_err_fact
+            result_dict["drnet_bias_att"] = ATT
+            result_dict["drnet_policy_risk"] = RPol
 
             file1.write("\nToday's date: {0}\n".format(date.today()))
             file1.write("Iter: {0}, drnet_bias_att: {1}, drnet_policy_risk: {2}, \n"
-                        .format(iter_id, drnet_bias_att,
-                                drnet_policy_risk))
+                        .format(iter_id, ATT,
+                                RPol))
             results_list.append(result_dict)
 
         drnet_policy_risk_set = []
         drnet_bias_att_set = []
 
         for result in results_list:
-            drnet_policy_risk_set.append(result["drnet_policy_risk"])
-            drnet_bias_att_set.append(result["drnet_bias_att"])
+            drnet_policy_risk_set.append(result["RPol"])
+            drnet_bias_att_set.append(result["ATT"])
 
         drnet_policy_risk_mean = np.mean(np.array(drnet_policy_risk_set))
         drnet_policy_risk_std = np.std(drnet_policy_risk_set)
@@ -172,7 +201,7 @@ class Experiments:
 
             run_parameters["TARNET_PM_GAN"] = "./MSE/ITE/ITE_TARNET_PM_GAN_iter_{0}.csv"
 
-            run_parameters["summary_file_name"] = "DR_WO_Info_CFR_Jobs.txt"
+            run_parameters["summary_file_name"] = "Jobs_Stats.txt"
             run_parameters["is_synthetic"] = False
 
         elif self.running_mode == "synthetic_data":
@@ -215,6 +244,33 @@ class Experiments:
         policy_value = pit * treat_value + (1 - pit) * control_value
 
         return policy_value
+
+    @staticmethod
+    def Perf_RPol_ATT(Test_T, Test_Y, y1_hat, y0_hat):
+        # RPol
+        # Decision of Output_Y
+        hat_t = np.sign(y1_hat - y0_hat)
+        hat_t = (0.5 * (hat_t + 1))
+        new_hat_t = np.abs(1 - hat_t)
+
+        # Intersection
+        idx1 = hat_t * Test_T
+        idx0 = new_hat_t * (1 - Test_T)
+
+        # RPol Computation
+        RPol1 = (np.sum(idx1 * Test_Y) / (np.sum(idx1) + 1e-8)) * np.mean(hat_t)
+        RPol0 = (np.sum(idx0 * Test_Y) / (np.sum(idx0) + 1e-8)) * np.mean(new_hat_t)
+        RPol = 1 - (RPol1 + RPol0)
+
+        # ATT
+        # Original ATT
+        ATT_value = np.sum(Test_T * Test_Y) / (np.sum(Test_T) + 1e-8) - np.sum((1 - Test_T) * Test_Y) / (
+                np.sum(1 - Test_T) + 1e-8)
+        # Estimated ATT
+        ATT_estimate = np.sum(Test_T * (y1_hat - y0_hat)) / (np.sum(Test_T) + 1e-8)
+        # Final ATT
+        ATT = np.abs(ATT_value - ATT_estimate)
+        return [RPol, ATT]
 
     def __process_evaluated_metric(self, y1_hat, y0_hat, y_f, e, T):
         y1_hat_np = np.array(y1_hat)

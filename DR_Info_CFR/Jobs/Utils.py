@@ -105,6 +105,25 @@ class Utils:
             orient='columns'
         ).to_csv(file_name)
 
+    @staticmethod
+    def vae_loss(mu, log_var):
+        return -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+
+
+class NormalNLLLoss:
+    """
+    Calculate the negative log likelihood
+    of normal distribution.
+    This needs to be minimised.
+    Treating Q(cj | x) as a factored Gaussian.
+    """
+
+    def __call__(self, noise_z, mu, var):
+        logli = -0.5 * (var.mul(2 * np.pi) + 1e-6).log() - (noise_z - mu).pow(2).div(var.mul(2.0) + 1e-6)
+        nll = -(logli.sum(1).mean())
+
+        return nll
+
 
 class EarlyStopping_DCN:
     """Early stops the training if validation loss doesn't improve after a given patience."""
@@ -151,7 +170,7 @@ class EarlyStopping_DCN:
         if self.best_score is None:
             self.best_score = score
             self.save_checkpoint(val_loss, dr_net_shared, dr_net_y1_model, dr_net_y0_model,
-                 pi_net_model, mu_net_model)
+                                 pi_net_model, mu_net_model)
         elif score < self.best_score + self.delta:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
@@ -160,11 +179,11 @@ class EarlyStopping_DCN:
         else:
             self.best_score = score
             self.save_checkpoint(val_loss, dr_net_shared, dr_net_y1_model, dr_net_y0_model,
-                 pi_net_model, mu_net_model)
+                                 pi_net_model, mu_net_model)
             self.counter = 0
 
     def save_checkpoint(self, val_loss, dr_net_shared, dr_net_y1_model, dr_net_y0_model,
-                 pi_net_model, mu_net_model):
+                        pi_net_model, mu_net_model):
         if self.verbose:
             self.trace_func(
                 f'Validation loss decreased ({self.val_loss_min} --> {val_loss}).  Saving model ...')

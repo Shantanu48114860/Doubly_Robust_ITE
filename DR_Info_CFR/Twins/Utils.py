@@ -72,6 +72,10 @@ class Utils:
         return processed_dataset
 
     @staticmethod
+    def vae_loss(mu, log_var):
+        return -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+
+    @staticmethod
     def concat_np_arr(X, Y, axis=1):
         return np.concatenate((X, Y), axis)
 
@@ -104,6 +108,21 @@ class Utils:
             list_to_write,
             orient='columns'
         ).to_csv(file_name)
+
+
+class NormalNLLLoss:
+    """
+    Calculate the negative log likelihood
+    of normal distribution.
+    This needs to be minimised.
+    Treating Q(cj | x) as a factored Gaussian.
+    """
+
+    def __call__(self, noise_z, mu, var):
+        logli = -0.5 * (var.mul(2 * np.pi) + 1e-6).log() - (noise_z - mu).pow(2).div(var.mul(2.0) + 1e-6)
+        nll = -(logli.sum(1).mean())
+
+        return nll
 
 
 class EarlyStopping_DCN:

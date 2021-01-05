@@ -3,6 +3,7 @@ from datetime import date
 
 import numpy as np
 
+from Adversarial_Manager import Adversarial_Manager
 from Constants import Constants
 from DR_Net_Manager import DRNet_Manager
 from Metrics import Metrics
@@ -38,12 +39,47 @@ class Experiments:
                 self.dL.load_train_test_twins_random(csv_path,
                                                      split_size)
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
-            drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
-                                          shared_nodes=Constants.DRNET_SHARED_NODES,
-                                          outcome_nodes=Constants.DRNET_OUTPUT_NODES,
-                                          device=device)
 
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
+
+            adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,
+                                              encoder_shared_nodes=Constants.Encoder_shared_nodes,
+                                              encoder_x_out_nodes=Constants.Encoder_x_nodes,
+                                              encoder_t_out_nodes=Constants.Encoder_t_nodes,
+                                              encoder_yf_out_nodes=Constants.Encoder_yf_nodes,
+                                              encoder_ycf_out_nodes=Constants.Encoder_ycf_nodes,
+                                              decoder_in_nodes=Constants.Decoder_in_nodes,
+                                              decoder_shared_nodes=Constants.Decoder_shared_nodes,
+                                              decoder_out_nodes=Constants.Decoder_out_nodes,
+                                              gen_in_nodes=Constants.Info_GAN_Gen_in_nodes,
+                                              gen_shared_nodes=Constants.Info_GAN_Gen_shared_nodes,
+                                              gen_out_nodes=Constants.Info_GAN_Gen_out_nodes,
+                                              dis_in_nodes=Constants.Info_GAN_Dis_in_nodes,
+                                              dis_shared_nodes=Constants.Info_GAN_Dis_shared_nodes,
+                                              dis_out_nodes=Constants.Info_GAN_Dis_out_nodes,
+                                              Q_in_nodes=Constants.Info_GAN_Q_in_nodes,
+                                              Q_shared_nodes=Constants.Info_GAN_Q_shared_nodes,
+                                              Q_out_nodes=Constants.Info_GAN_Q_out_nodes,
+                                              device=device)
+
+            _train_parameters = {
+                "epochs": Constants.Adversarial_epochs,
+                "vae_lr": Constants.Adversarial_VAE_LR,
+                "gan_lr": Constants.INFO_GAN_LR,
+                "lambda": Constants.Adversarial_LAMBDA,
+                "batch_size": Constants.Adversarial_BATCH_SIZE,
+                "INFO_GAN_LAMBDA": Constants.INFO_GAN_LAMBDA,
+                "INFO_GAN_ALPHA": Constants.INFO_GAN_ALPHA,
+                "shuffle": True,
+                "VAE_BETA": Constants.VAE_BETA,
+                "train_dataset": tensor_train
+            }
+            print("Adversarial Model Training started....")
+            adv_manager.train_adversarial_model(_train_parameters, device)
+            np_y_cf = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
+            print("Adversarial Model Training ended....")
+
+            tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf)
             tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
             _train_parameters = {
                 "epochs": Constants.DRNET_EPOCHS,
@@ -53,8 +89,12 @@ class Experiments:
                 "shuffle": True,
                 "ALPHA": Constants.ALPHA,
                 "BETA": Constants.BETA,
-                "train_dataset": tensor_train
+                "train_dataset": tensor_train_dr
             }
+            drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
+                                          shared_nodes=Constants.DRNET_SHARED_NODES,
+                                          outcome_nodes=Constants.DRNET_OUTPUT_NODES,
+                                          device=device)
             drnet_manager.train_DR_NET(_train_parameters, device)
             dr_eval = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
             print("---" * 20)
@@ -168,7 +208,7 @@ class Experiments:
 
             run_parameters["TARNET_PM_GAN"] = "./MSE/ITE/ITE_TARNET_PM_GAN_iter_{0}.csv"
 
-            run_parameters["summary_file_name"] = "DR_WO_Info_CFR_Twins.txt"
+            run_parameters["summary_file_name"] = "Twins_Stats.txt"
             run_parameters["is_synthetic"] = False
 
         elif self.running_mode == "synthetic_data":

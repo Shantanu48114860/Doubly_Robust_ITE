@@ -85,7 +85,7 @@ class Adversarial_Manager:
                 # VAE training
                 self.adversarial_vae.train()
                 for batch in train_data_loader:
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, e, y_f = batch
                     batch_n = covariates_X.size(0)
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)

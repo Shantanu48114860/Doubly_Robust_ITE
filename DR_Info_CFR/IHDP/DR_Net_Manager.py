@@ -97,22 +97,22 @@ class DRNet_Manager:
                         loss_F = loss_F_MSE(y_f_hat.float().cuda(),
                                             y_f.float().cuda()).to(device)
                         loss_CF = loss_CF_MSE(y_cf_hat.float().cuda(),
-                                             y_cf.float().cuda()).to(device)
+                                              y_cf.float().cuda()).to(device)
 
                         loss_DR_F = loss_DR_F_MSE(y_f_dr.float().cuda(),
                                                   y_f.float().cuda()).to(device)
                         loss_DR_CF = loss_DR_CF_MSE(y_cf_dr.float().cuda(),
-                                                   y_cf.float().cuda()).to(device)
+                                                    y_cf.float().cuda()).to(device)
                     else:
                         loss_F = loss_F_MSE(y_f_hat.float(),
                                             y_f.float()).to(device)
                         loss_CF = loss_CF_MSE(y_cf_hat.float(),
-                                             y_cf.float()).to(device)
+                                              y_cf.float()).to(device)
 
                         loss_DR_F = loss_DR_F_MSE(y_f_dr.float(),
                                                   y_f.float()).to(device)
                         loss_DR_CF = loss_DR_CF_MSE(y_cf_dr.float(),
-                                                   y_cf.float()).to(device)
+                                                    y_cf.float()).to(device)
 
                     loss = loss_F + loss_CF + ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
                     loss.backward()

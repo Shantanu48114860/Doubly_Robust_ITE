@@ -45,7 +45,6 @@ class Experiments:
                 self.dL.load_train_test_ihdp_random(csv_path,
                                                     split_size)
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
-            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
 
             adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,
                                               encoder_shared_nodes=Constants.Encoder_shared_nodes,
@@ -85,6 +84,7 @@ class Experiments:
             print("Adversarial Model Training ended....")
 
             tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf)
+            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
             # tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
             drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
@@ -105,6 +105,7 @@ class Experiments:
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
             drnet_manager.train_DR_NET(_dr_train_parameters, device)
             dr_eval = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
+
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
             drnet_PEHE, drnet_ATE_metric = \
@@ -216,7 +217,7 @@ class Experiments:
 
             run_parameters["TARNET_PM_GAN"] = "./MSE/ITE/ITE_TARNET_PM_GAN_iter_{0}.csv"
 
-            run_parameters["summary_file_name"] = "DR_WO_Info_CFR_IHDP_best.txt"
+            run_parameters["summary_file_name"] = "IHDP_stats.txt"
             run_parameters["is_synthetic"] = False
 
         elif self.running_mode == "synthetic_data":

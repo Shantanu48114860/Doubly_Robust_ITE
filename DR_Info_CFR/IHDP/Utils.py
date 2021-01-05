@@ -84,10 +84,6 @@ class Utils:
         return preds.argmax(dim=1).eq(labels).sum().item()
 
     @staticmethod
-    def vae_loss(mu, log_var):
-        return -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-
-    @staticmethod
     def get_runs(params):
         """
         Gets the run parameters using cartesian products of the different parameters.
@@ -108,6 +104,10 @@ class Utils:
             list_to_write,
             orient='columns'
         ).to_csv(file_name)
+
+    @staticmethod
+    def vae_loss(mu, log_var):
+        return -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
 
 
 class NormalNLLLoss:
