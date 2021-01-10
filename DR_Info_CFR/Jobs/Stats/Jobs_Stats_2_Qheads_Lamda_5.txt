@@ -1,0 +1,85 @@
+
+Today's date: 2021-01-07
+Iter: 0, drnet_bias_att_out: 0.1677767996623719, drnet_policy_risk_out: 0.1584967049169238, drnet_bias_att_in: 0.13212526952036335, drnet_policy_risk_in: 0.11755637049349854,
+
+Today's date: 2021-01-07
+Iter: 1, drnet_bias_att_out: 0.14198986078379677, drnet_policy_risk_out: 0.143522280992761, drnet_bias_att_in: 0.03207000911945748, drnet_policy_risk_in: 0.0897642589056089,
+
+Today's date: 2021-01-07
+Iter: 2, drnet_bias_att_out: 0.1458621813761986, drnet_policy_risk_out: 0.14270840248176908, drnet_bias_att_in: 0.1466553863507011, drnet_policy_risk_in: 0.10239478958779102,
+
+Today's date: 2021-01-07
+Iter: 3, drnet_bias_att_out: 0.010737117718753367, drnet_policy_risk_out: 0.11303854120387447, drnet_bias_att_in: 0.046126552774265916, drnet_policy_risk_in: 0.10742923631275403,
+
+Today's date: 2021-01-07
+Iter: 4, drnet_bias_att_out: 0.23826954631723238, drnet_policy_risk_out: 0.14672952927033145, drnet_bias_att_in: 0.10475638217962344, drnet_policy_risk_in: 0.11812596535495723,
+
+Today's date: 2021-01-07
+Iter: 5, drnet_bias_att_out: 0.09581915073222155, drnet_policy_risk_out: 0.10926470432813551, drnet_bias_att_in: 0.06982702713277067, drnet_policy_risk_in: 0.10066232030436739,
+
+Today's date: 2021-01-07
+Iter: 6, drnet_bias_att_out: 0.014207545743488453, drnet_policy_risk_out: 0.09543361794852745, drnet_bias_att_in: 0.08246696329449404, drnet_policy_risk_in: 0.10829730308489205,
+
+Today's date: 2021-01-07
+Iter: 7, drnet_bias_att_out: 0.036610023279231685, drnet_policy_risk_out: 0.13474080560677615, drnet_bias_att_in: 0.07388542876276294, drnet_policy_risk_in: 0.10096620438370707,
+
+Today's date: 2021-01-07
+Iter: 8, drnet_bias_att_out: 0.02523274909186707, drnet_policy_risk_out: 0.10557221691485952, drnet_bias_att_in: 0.07193912949898126, drnet_policy_risk_in: 0.10498280455259457,
+
+Today's date: 2021-01-07
+Iter: 9, drnet_bias_att_out: 0.18493477979894268, drnet_policy_risk_out: 0.14374837748111668, drnet_bias_att_in: 0.14186815261495184, drnet_policy_risk_in: 0.12066027882850905,
+
+#####################
+---------------------
+DR_NET, policy_risk_out: 0.1293255181145075, SD: 0.02037752120920553
+DR_NET, bias_att_out: 0.10614397545041046, SD: 0.07705141166438512
+DR_NET, policy_risk_in: 0.10708395318086798, SD: 0.00906942513855795
+DR_NET, bias_att_in: 0.09017203012483721, SD: 0.03771268275050587
+
+
+class Constants:
+    # DR_Net
+    DRNET_EPOCHS = 75
+    DRNET_SS_EPOCHS = 1
+    DRNET_LR = 1e-4
+    DRNET_LAMBDA = 0.0001
+    DRNET_BATCH_SIZE = 64
+    DRNET_INPUT_NODES = 17
+    DRNET_SHARED_NODES = 200
+    DRNET_OUTPUT_NODES = 100
+    ALPHA = 1
+    BETA = 1
+
+    # Adversarial VAE Info GAN
+    Adversarial_epochs = 1000
+    Adversarial_VAE_LR = 1e-3
+    INFO_GAN_G_LR = 1e-4
+    INFO_GAN_D_LR = 1e-4
+    Adversarial_LAMBDA = 1e-5
+    Adversarial_BATCH_SIZE = 64
+    VAE_BETA = 1
+    INFO_GAN_LAMBDA = 5
+    INFO_GAN_ALPHA = 1
+
+    Encoder_shared_nodes = 15
+    Encoder_x_nodes = 5
+    Encoder_t_nodes = 1
+    Encoder_yf_nodes = 1
+    Encoder_ycf_nodes = 1
+
+    Decoder_in_nodes = Encoder_x_nodes + Encoder_t_nodes + Encoder_yf_nodes + Encoder_ycf_nodes
+    Decoder_shared_nodes = 15
+    Decoder_out_nodes = DRNET_INPUT_NODES
+
+    Info_GAN_Gen_in_nodes = 100
+    Info_GAN_Gen_shared_nodes = 30
+    Info_GAN_Gen_out_nodes = 1
+
+    # 25 -> covariates, 1 -> y0, 1-> y1
+    Info_GAN_Dis_in_nodes = DRNET_INPUT_NODES + 2
+    Info_GAN_Dis_shared_nodes = 30
+    Info_GAN_Dis_out_nodes = 1
+
+    Info_GAN_Q_in_nodes = 1
+    Info_GAN_Q_shared_nodes = 30
+    Info_GAN_Q_out_nodes = Decoder_in_nodes

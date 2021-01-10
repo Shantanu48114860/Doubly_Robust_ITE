@@ -48,10 +48,10 @@ class DRNet_Manager:
         optimizer_pi = optim.Adam(self.pi_net.parameters(), lr=lr, weight_decay=weight_decay)
         optimizer_mu = optim.Adam(self.mu_net.parameters(), lr=lr, weight_decay=weight_decay)
 
-        loss_F_MSE = nn.MSELoss()
-        loss_CF_MSE = nn.MSELoss()
-        loss_DR_F_MSE = nn.MSELoss()
-        loss_DR_CF_MSE = nn.MSELoss()
+        loss_F_MSE = nn.BCELoss()
+        loss_CF_MSE = nn.BCELoss()
+        loss_DR_F_MSE = nn.BCELoss()
+        loss_DR_CF_MSE = nn.BCELoss()
         lossBCE = nn.BCELoss()
 
         for epoch in range(epochs):
@@ -93,11 +93,11 @@ class DRNet_Manager:
                     y_f_hat = y1_hat * T_float + y0_hat * (1 - T_float)
                     y_cf_hat = y1_hat * (1 - T_float) + y0_hat * T_float
 
-                    y_f_dr = T_float * ((T_float * y1_hat - (T_float - pi) * mu) / pi) + \
-                             (1 - T_float) * (((1 - T_float) * y0_hat - (T_float - pi) * mu) / (1 - pi))
+                    y_f_dr = torch.sigmoid(T_float * ((T_float * y1_hat - (T_float - pi) * mu) / pi) + \
+                             (1 - T_float) * (((1 - T_float) * y0_hat - (T_float - pi) * mu) / (1 - pi)))
 
-                    y_cf_dr = (1 - T_float) * (((1 - T_float) * y1_hat - (T_float - pi) * mu) / pi) + \
-                             T_float * ((T_float * y0_hat - (T_float - pi) * mu) / (1 - pi))
+                    y_cf_dr = torch.sigmoid((1 - T_float) * (((1 - T_float) * y1_hat - (T_float - pi) * mu) / pi) + \
+                             T_float * ((T_float * y0_hat - (T_float - pi) * mu) / (1 - pi)))
 
                     loss_pi = lossBCE(pi, T_float).to(device)
                     if torch.cuda.is_available():

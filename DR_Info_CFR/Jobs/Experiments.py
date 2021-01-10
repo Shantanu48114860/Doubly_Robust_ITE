@@ -11,6 +11,10 @@ from dataloader import DataLoader
 
 
 class Experiments:
+    """
+    This class specifies all the experimental details used in this research.
+    """
+
     def __init__(self, running_mode):
         self.dL = DataLoader()
         self.running_mode = running_mode
@@ -18,6 +22,15 @@ class Experiments:
         self.np_test = None
 
     def run_all_experiments(self, train_path, test_path, iterations):
+        """
+        This function is the central point which controls the different experimental settings
+
+        Input:
+            train_path: path of the training dataset.
+            train_path: path of the training dataset.
+            iterations: Number of realizations of the dataset.
+                        Default is 10 for Jobs dataset.
+        """
         device = Utils.get_device()
         print(device)
         print("iterations", iterations)
@@ -58,7 +71,8 @@ class Experiments:
             _train_parameters = {
                 "epochs": Constants.Adversarial_epochs,
                 "vae_lr": Constants.Adversarial_VAE_LR,
-                "gan_lr": Constants.INFO_GAN_LR,
+                "gan_G_lr": Constants.INFO_GAN_G_LR,
+                "gan_D_lr": Constants.INFO_GAN_D_LR,
                 "lambda": Constants.Adversarial_LAMBDA,
                 "batch_size": Constants.Adversarial_BATCH_SIZE,
                 "INFO_GAN_LAMBDA": Constants.INFO_GAN_LAMBDA,
@@ -80,7 +94,7 @@ class Experiments:
                                           outcome_nodes=Constants.DRNET_OUTPUT_NODES,
                                           device=device)
 
-            _train_parameters = {
+            _dr_train_parameters = {
                 "epochs": Constants.DRNET_EPOCHS,
                 "lr": Constants.DRNET_LR,
                 "lambda": Constants.DRNET_LAMBDA,
@@ -90,60 +104,91 @@ class Experiments:
                 "BETA": Constants.BETA,
                 "train_dataset": tensor_train_dr
             }
-            drnet_manager.train_DR_NET(_train_parameters, device)
-            dr_eval = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
+            drnet_manager.train_DR_NET(_dr_train_parameters, device)
+            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
+            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train}, device)
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
 
-            [RPol, ATT] = self.Perf_RPol_ATT(Utils.convert_to_col_vector(np.array(dr_eval["T_list"])),
-                                             Utils.convert_to_col_vector(np.array(dr_eval["yf_list"])),
-                                             Utils.convert_to_col_vector(np.array(dr_eval["y1_hat_list"])),
-                                             Utils.convert_to_col_vector(np.array(dr_eval["y0_hat_list"])))
+            [RPol_out, ATT_out] = self.Perf_RPol_ATT(Utils.convert_to_col_vector(np.array(dr_eval_out["T_list"])),
+                                                     Utils.convert_to_col_vector(np.array(dr_eval_out["yf_list"])),
+                                                     Utils.convert_to_col_vector(np.array(dr_eval_out["y1_hat_list"])),
+                                                     Utils.convert_to_col_vector(np.array(dr_eval_out["y0_hat_list"])))
+
+            [RPol_in, ATT_in] = self.Perf_RPol_ATT(Utils.convert_to_col_vector(np.array(dr_eval_in["T_list"])),
+                                                   Utils.convert_to_col_vector(np.array(dr_eval_in["yf_list"])),
+                                                   Utils.convert_to_col_vector(np.array(dr_eval_in["y1_hat_list"])),
+                                                   Utils.convert_to_col_vector(np.array(dr_eval_in["y0_hat_list"])))
+
             print("--------")
-            print("RPol: ", RPol)
-            print("ATT: ", ATT)
+            print("RPol_out: ", RPol_out)
+            print("ATT_out: ", ATT_out)
+            print("RPol_in: ", RPol_in)
+            print("ATT_in: ", ATT_in)
 
             print("---" * 20)
 
             result_dict = OrderedDict()
             result_dict["iter_id"] = iter_id
 
-            result_dict["drnet_bias_att"] = ATT
-            result_dict["drnet_policy_risk"] = RPol
+            result_dict["drnet_bias_att_out"] = ATT_out
+            result_dict["drnet_policy_risk_out"] = RPol_out
+            result_dict["drnet_bias_att_in"] = ATT_in
+            result_dict["drnet_policy_risk_in"] = RPol_in
 
             file1.write("\nToday's date: {0}\n".format(date.today()))
-            file1.write("Iter: {0}, drnet_bias_att: {1}, drnet_policy_risk: {2}, \n"
-                        .format(iter_id, ATT,
-                                RPol))
+            file1.write("Iter: {0}, drnet_bias_att_out: {1}, drnet_policy_risk_out: {2}, "
+                        "drnet_bias_att_in: {3}, drnet_policy_risk_in: {4},\n"
+                        .format(iter_id, ATT_out,
+                                RPol_out, ATT_in, RPol_in))
             results_list.append(result_dict)
 
-        drnet_policy_risk_set = []
-        drnet_bias_att_set = []
+        drnet_policy_risk_set_out = []
+        drnet_bias_att_set_out = []
+        drnet_policy_risk_set_in = []
+        drnet_bias_att_set_in = []
 
         for result in results_list:
-            drnet_policy_risk_set.append(result["RPol"])
-            drnet_bias_att_set.append(result["ATT"])
+            drnet_policy_risk_set_out.append(result["drnet_policy_risk_out"])
+            drnet_bias_att_set_out.append(result["drnet_bias_att_out"])
+            drnet_policy_risk_set_in.append(result["drnet_policy_risk_in"])
+            drnet_bias_att_set_in.append(result["drnet_bias_att_in"])
 
-        drnet_policy_risk_mean = np.mean(np.array(drnet_policy_risk_set))
-        drnet_policy_risk_std = np.std(drnet_policy_risk_set)
-        drnet_bias_att_mean = np.mean(np.array(drnet_bias_att_set))
-        drnet_bias_att_std = np.std(drnet_bias_att_set)
+        drnet_policy_risk_mean_out = np.mean(np.array(drnet_policy_risk_set_out))
+        drnet_policy_risk_std_out = np.std(drnet_policy_risk_set_out)
+        drnet_bias_att_mean_out = np.mean(np.array(drnet_bias_att_set_out))
+        drnet_bias_att_std_out = np.std(drnet_bias_att_set_out)
+
+        drnet_policy_risk_mean_in = np.mean(np.array(drnet_policy_risk_set_in))
+        drnet_policy_risk_std_in = np.std(drnet_policy_risk_set_in)
+        drnet_bias_att_mean_in = np.mean(np.array(drnet_bias_att_set_in))
+        drnet_bias_att_std_in = np.std(drnet_bias_att_set_in)
 
         print("----------------- !!DR_Net Models(Results) !! ------------------------")
         print("--" * 20)
-        print("DR_NET, policy_risk: {0}, SD: {1}"
-              .format(drnet_policy_risk_mean, drnet_policy_risk_std))
-        print("DR_NET, bias_att: {0}, SD: {1}"
-              .format(drnet_bias_att_mean, drnet_bias_att_std))
+        print("DR_NET, policy_risk_out: {0}, SD: {1}"
+              .format(drnet_policy_risk_mean_out, drnet_policy_risk_std_out))
+        print("DR_NET, bias_att_out: {0}, SD: {1}"
+              .format(drnet_bias_att_mean_out, drnet_bias_att_std_out))
+        print("--" * 20)
+        print("DR_NET, policy_risk_in: {0}, SD: {1}"
+              .format(drnet_policy_risk_mean_in, drnet_policy_risk_std_in))
+        print("DR_NET, bias_att_in: {0}, SD: {1}"
+              .format(drnet_bias_att_mean_in, drnet_bias_att_std_in))
         print("--" * 20)
 
         file1.write("\n#####################")
 
         file1.write("\n---------------------")
-        file1.write("\nDR_NET, policy_risk: {0}, SD: {1}"
-                    .format(drnet_policy_risk_mean, drnet_policy_risk_std))
-        file1.write("\nDR_NET, bias_att: {0}, SD: {1}"
-                    .format(drnet_bias_att_mean, drnet_bias_att_std))
+        file1.write("\nDR_NET, policy_risk_out: {0}, SD: {1}"
+                    .format(drnet_policy_risk_mean_out, drnet_policy_risk_std_out))
+        file1.write("\nDR_NET, bias_att_out: {0}, SD: {1}"
+                    .format(drnet_bias_att_mean_out, drnet_bias_att_std_out))
+
+        file1.write("\nDR_NET, policy_risk_in: {0}, SD: {1}"
+                    .format(drnet_policy_risk_mean_in, drnet_policy_risk_std_in))
+        file1.write("\nDR_NET, bias_att_in: {0}, SD: {1}"
+                    .format(drnet_bias_att_mean_in, drnet_bias_att_std_in))
 
         Utils.write_to_csv(run_parameters["consolidated_file_path"], results_list)
 
@@ -151,7 +196,7 @@ class Experiments:
         run_parameters = {}
         if self.running_mode == "original_data":
             run_parameters["input_nodes"] = 25
-            run_parameters["consolidated_file_path"] = "MSE/Results_consolidated.csv"
+            run_parameters["consolidated_file_path"] = "MSE/Results_consolidated_final_2QHeads_lamda_10.csv"
 
             # NN
             run_parameters["nn_prop_file"] = "MSE/NN_Prop_score_{0}.csv"
@@ -206,7 +251,7 @@ class Experiments:
 
         elif self.running_mode == "synthetic_data":
             run_parameters["input_nodes"] = 75
-            # run_parameters["consolidated_file_path"] = "./MSE_Augmented/Results_consolidated.csv"
+            # run_parameters["consolidated_file_path"] = "./MSE_Augmented/Results_consolidated_final_2QHeads_lamda_10.csv"
 
             run_parameters["is_synthetic"] = True
 
@@ -220,33 +265,27 @@ class Experiments:
             return self.dL.load_train_test_jobs(train_path, test_path, iter_id)
 
     @staticmethod
-    def cal_policy_val(t, yf, eff_pred):
-        #  policy_val(t[e>0], yf[e>0], eff_pred[e>0], compute_policy_curve)
-
-        if np.any(np.isnan(eff_pred)):
-            return np.nan, np.nan
-
-        policy = eff_pred > 0
-        treat_overlap = (policy == t) * (t > 0)
-        control_overlap = (policy == t) * (t < 1)
-
-        if np.sum(treat_overlap) == 0:
-            treat_value = 0
-        else:
-            treat_value = np.mean(yf[treat_overlap])
-
-        if np.sum(control_overlap) == 0:
-            control_value = 0
-        else:
-            control_value = np.mean(yf[control_overlap])
-
-        pit = np.mean(policy)
-        policy_value = pit * treat_value + (1 - pit) * control_value
-
-        return policy_value
-
-    @staticmethod
     def Perf_RPol_ATT(Test_T, Test_Y, y1_hat, y0_hat):
+        """
+        This function is the central point which controls the different experimental settings
+
+        Input:
+            Test_T: Treatment variable of the test set
+            Test_Y: True outcome variables of the test set.
+                    Note that true y0 and y1 are concatnated in this single vector.
+
+            y1_hat: Predicted y1 by the neural network
+            y0_hat: Predicted y1 by the neural network
+
+        Returns:
+            RPol: Policy Risk
+            ATT: Bias ATT
+
+            Note: This part is taken from the implementation of GANITE (ICLR, 2018).
+            Source code: https://bitbucket.org/mvdschaar/mlforhealthlabpub/src/68e4f7d13e4368eba655132a73ff9f278da5d3af/alg/ganite/ganite_ana.py
+            Paper: https://openreview.net/pdf?id=ByKWUeWA-
+        """
+
         # RPol
         # Decision of Output_Y
         hat_t = np.sign(y1_hat - y0_hat)
@@ -272,40 +311,6 @@ class Experiments:
         ATT = np.abs(ATT_value - ATT_estimate)
         return [RPol, ATT]
 
-    def __process_evaluated_metric(self, y1_hat, y0_hat, y_f, e, T):
-        y1_hat_np = np.array(y1_hat)
-        y0_hat_np = np.array(y0_hat)
-        e_np = np.array(e)
-        t_np = np.array(T)
-        np_y_f = np.array(y_f)
-
-        y1_hat_np_b = 1.0 * (y1_hat_np > 0.5)
-        y0_hat_np_b = 1.0 * (y0_hat_np > 0.5)
-
-        err_fact = np.mean(np.abs(y1_hat_np_b - np_y_f))
-        att = np.mean(np_y_f[t_np > 0]) - np.mean(np_y_f[(1 - t_np + e_np) > 1])
-
-        eff_pred = y0_hat_np - y1_hat_np
-        eff_pred[t_np > 0] = -eff_pred[t_np > 0]
-
-        ate_pred = np.mean(eff_pred[e_np > 0])
-        atc_pred = np.mean(eff_pred[(1 - t_np + e_np) > 1])
-
-        att_pred = np.mean(eff_pred[(t_np + e_np) > 1])
-        bias_att = np.abs(att_pred - att)
-
-        policy_value = self.cal_policy_val(t_np[e_np > 0], np_y_f[e_np > 0],
-                                           eff_pred[e_np > 0])
-
-        print("bias_att: " + str(bias_att))
-        print("policy_value: " + str(policy_value))
-        print("Risk: " + str(1 - policy_value))
-        print("atc_pred: " + str(atc_pred))
-        print("att_pred: " + str(att_pred))
-        print("err_fact: " + str(err_fact))
-
-        # Utils.write_to_csv(ite_csv_path.format(iter_id), ite_dict)
-        return ate_pred, att_pred, bias_att, atc_pred, policy_value, 1 - policy_value, err_fact
 
     # def get_consolidated_file_name(self, ps_model_type):
     #     if ps_model_type == Constants.PS_MODEL_NN:

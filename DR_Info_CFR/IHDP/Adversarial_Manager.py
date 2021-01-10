@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
-from Adversarial_model import Adversarial_VAE, Generator, Discriminator, QHead
+from Adversarial_model import Adversarial_VAE, Generator, Discriminator, QHead_y0, QHead_y1
 from Constants import Constants
 from Utils import Utils, NormalNLLLoss
 
@@ -37,15 +37,20 @@ class Adversarial_Manager:
                                   shared_nodes=dis_shared_nodes,
                                   out_nodes=dis_out_nodes).to(device)
 
-        self.netQ = QHead(in_nodes=Q_in_nodes,
-                          shared_nodes=Q_shared_nodes,
-                          out_nodes=Q_out_nodes).to(device)
+        self.netQ0 = QHead_y0(in_nodes=Q_in_nodes,
+                              shared_nodes=Q_shared_nodes,
+                              out_nodes=Q_out_nodes).to(device)
+
+        self.netQ1 = QHead_y1(in_nodes=Q_in_nodes,
+                              shared_nodes=Q_shared_nodes,
+                              out_nodes=Q_out_nodes).to(device)
 
     def train_adversarial_model(self, train_parameters, device):
         epochs = train_parameters["epochs"]
         batch_size = train_parameters["batch_size"]
         vae_lr = train_parameters["vae_lr"]
-        gan_lr = train_parameters["gan_lr"]
+        gan_G_lr = train_parameters["gan_G_lr"]
+        gan_D_lr = train_parameters["gan_D_lr"]
         weight_decay = train_parameters["lambda"]
         shuffle = train_parameters["shuffle"]
         train_dataset = train_parameters["train_dataset"]
@@ -60,14 +65,15 @@ class Adversarial_Manager:
         adv_vae_optimizer = optim.Adam(params=self.adversarial_vae.parameters(),
                                        lr=vae_lr, weight_decay=weight_decay)
         D_optimizer = optim.Adam(params=self.netD.parameters(),
-                                 lr=gan_lr, weight_decay=weight_decay,
+                                 lr=gan_D_lr, weight_decay=weight_decay,
                                  betas=(0.5, 0.999))
         G_optimizer = optim.Adam(
             [
                 {'params': self.netG.parameters()},
-                {'params': self.netQ.parameters()}
+                {'params': self.netQ0.parameters()},
+                {'params': self.netQ1.parameters()}
             ],
-            lr=gan_lr,
+            lr=gan_G_lr,
             weight_decay=weight_decay,
             betas=(0.5, 0.999))
 
@@ -120,7 +126,8 @@ class Adversarial_Manager:
                     # GAN training
                     self.netG.train()
                     self.netD.train()
-                    self.netQ.train()
+                    self.netQ0.train()
+                    self.netQ1.train()
                     latent_z_code = latent_z_code.detach()
                     # sample from uniform(-1, 1)
                     noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
@@ -162,8 +169,9 @@ class Adversarial_Manager:
                                         netD_y0.to(device),
                                         netD_y1.to(device))
                     # Q training
-                    q_mu0, q_var0 = self.netQ(y0)
-                    q_mu1, q_var1 = self.netQ(y1)
+                    # q_input = torch.cat((y0, y1), dim=1)
+                    q_mu0, q_var0 = self.netQ0(y0)
+                    q_mu1, q_var1 = self.netQ1(y1)
                     con_loss0 = loss_Q_con(latent_z_code, q_mu0, q_var0) * 0.1
                     con_loss1 = loss_Q_con(latent_z_code, q_mu1, q_var1) * 0.1
 
@@ -189,6 +197,12 @@ class Adversarial_Manager:
                                   loss_train='{:05.3f}'.format(total_loss_train))
                     t.update()
 
+        torch.save(self.adversarial_vae.state_dict(), "Models/adversarial_vae.pth")
+        torch.save(self.netG.state_dict(), "Models/netG.pth")
+        torch.save(self.netD.state_dict(), "Models/netD.pth")
+        torch.save(self.netQ0.state_dict(), "Models/netQ0.pth")
+        torch.save(self.netQ1.state_dict(), "Models/netQ1.pth")
+
     def test_adversarial_model(self, train_parameters, device):
         eval_set = train_parameters["tensor_dataset"]
         _data_loader = torch.utils.data.DataLoader(eval_set,
@@ -197,7 +211,8 @@ class Adversarial_Manager:
         self.adversarial_vae.eval()
         self.netG.eval()
         self.netD.eval()
-        self.netQ.eval()
+        self.netQ0.eval()
+        self.netQ1.eval()
 
         ycf_list = []
         for batch in _data_loader:

@@ -14,11 +14,12 @@ class Constants:
     # Adversarial VAE Info GAN
     Adversarial_epochs = 1000
     Adversarial_VAE_LR = 1e-3
-    INFO_GAN_LR = 1e-4
+    INFO_GAN_G_LR = 1e-4
+    INFO_GAN_D_LR = 1e-4
     Adversarial_LAMBDA = 1e-5
     Adversarial_BATCH_SIZE = 64
     VAE_BETA = 1
-    INFO_GAN_LAMBDA = 1
+    INFO_GAN_LAMBDA = 10
     INFO_GAN_ALPHA = 1
 
     Encoder_shared_nodes = 15

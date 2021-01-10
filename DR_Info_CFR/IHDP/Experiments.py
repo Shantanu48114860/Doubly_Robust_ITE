@@ -69,7 +69,8 @@ class Experiments:
             _train_parameters = {
                 "epochs": Constants.Adversarial_epochs,
                 "vae_lr": Constants.Adversarial_VAE_LR,
-                "gan_lr": Constants.INFO_GAN_LR,
+                "gan_G_lr": Constants.INFO_GAN_G_LR,
+                "gan_D_lr": Constants.INFO_GAN_D_LR,
                 "lambda": Constants.Adversarial_LAMBDA,
                 "batch_size": Constants.Adversarial_BATCH_SIZE,
                 "INFO_GAN_LAMBDA": Constants.INFO_GAN_LAMBDA,
@@ -87,11 +88,6 @@ class Experiments:
             tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
             # tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
-            drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
-                                          shared_nodes=Constants.DRNET_SHARED_NODES,
-                                          outcome_nodes=Constants.DRNET_OUTPUT_NODES,
-                                          device=device)
-
             _dr_train_parameters = {
                 "epochs": Constants.DRNET_EPOCHS,
                 "lr": Constants.DRNET_LR,
@@ -103,63 +99,101 @@ class Experiments:
                 "train_dataset": tensor_train_dr
             }
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
+            drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
+                                          shared_nodes=Constants.DRNET_SHARED_NODES,
+                                          outcome_nodes=Constants.DRNET_OUTPUT_NODES,
+                                          device=device)
             drnet_manager.train_DR_NET(_dr_train_parameters, device)
-            dr_eval = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
-
+            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
-            drnet_PEHE, drnet_ATE_metric = \
+            drnet_PEHE_out, drnet_ATE_metric_out = \
                 self.__process_evaluated_metric(
-                    dr_eval["y1_hat_list"],
-                    dr_eval["y0_hat_list"],
-                    dr_eval["y1_true_list"],
-                    dr_eval["y0_true_list"])
+                    dr_eval_out["y1_hat_list"],
+                    dr_eval_out["y0_hat_list"],
+                    dr_eval_out["y1_true_list"],
+                    dr_eval_out["y0_true_list"])
+            print("drnet_PEHE: ", drnet_PEHE_out)
+            print("drnet_ATE_metric: ", drnet_ATE_metric_out)
 
-            print("drnet_PEHE: ", drnet_PEHE)
-            print("drnet_ATE_metric: ", drnet_ATE_metric)
+            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train}, device)
+            print("---" * 20)
+            drnet_PEHE_in, drnet_ATE_metric_in = \
+                self.__process_evaluated_metric(
+                    dr_eval_in["y1_hat_list"],
+                    dr_eval_in["y0_hat_list"],
+                    dr_eval_in["y1_true_list"],
+                    dr_eval_in["y0_true_list"])
+            print("drnet_PEHE: ", drnet_PEHE_in)
+            print("drnet_ATE_metric: ", drnet_ATE_metric_in)
 
             print("---" * 20)
 
             result_dict = OrderedDict()
             result_dict["iter_id"] = iter_id
 
-            result_dict["drnet_PEHE"] = drnet_PEHE
-            result_dict["drnet_ATE_metric"] = drnet_ATE_metric
+            result_dict["drnet_PEHE_out"] = drnet_PEHE_out
+            result_dict["drnet_ATE_metric_out"] = drnet_ATE_metric_out
+            result_dict["drnet_PEHE_in"] = drnet_PEHE_in
+            result_dict["drnet_ATE_metric_in"] = drnet_ATE_metric_in
 
             file1.write("\nToday's date: {0}\n".format(date.today()))
-            file1.write("Iter: {0}, PEHE_DR_NET: {1}, ATE_DR_NET: {2}, \n"
-                        .format(iter_id, drnet_PEHE,
-                                drnet_ATE_metric))
+            file1.write("Iter: {0}, PEHE_DR_NET_out: {1}, ATE_DR_NET_out: {2}, "
+                        "PEHE_DR_NET_in: {3}, ATE_DR_NET_in: {4}, \n"
+                        .format(iter_id, drnet_PEHE_out,
+                                drnet_ATE_metric_out,
+                                drnet_PEHE_in,
+                                drnet_ATE_metric_in))
             results_list.append(result_dict)
 
-        PEHE_set_drnet = []
-        ATE_Metric_set_drnet = []
+        PEHE_set_drnet_out = []
+        ATE_Metric_set_drnet_out = []
+        PEHE_set_drnet_in = []
+        ATE_Metric_set_drnet_in = []
 
         for result in results_list:
-            PEHE_set_drnet.append(result["drnet_PEHE"])
-            ATE_Metric_set_drnet.append(result["drnet_ATE_metric"])
+            PEHE_set_drnet_out.append(result["drnet_PEHE_out"])
+            ATE_Metric_set_drnet_out.append(result["drnet_ATE_metric_out"])
+            PEHE_set_drnet_in.append(result["drnet_PEHE_in"])
+            ATE_Metric_set_drnet_in.append(result["drnet_ATE_metric_in"])
 
-        PEHE_set_drnet_mean = np.mean(np.array(PEHE_set_drnet))
-        PEHE_set_drnet_std = np.std(PEHE_set_drnet)
-        ATE_Metric_set_drnet_mean = np.mean(np.array(ATE_Metric_set_drnet))
-        ATE_Metric_set_drnet_std = np.std(ATE_Metric_set_drnet)
+        PEHE_set_drnet_mean_out = np.mean(np.array(PEHE_set_drnet_out))
+        PEHE_set_drnet_std_out = np.std(PEHE_set_drnet_out)
+        ATE_Metric_set_drnet_mean_out = np.mean(np.array(ATE_Metric_set_drnet_out))
+        ATE_Metric_set_drnet_std_out = np.std(ATE_Metric_set_drnet_out)
+
+        PEHE_set_drnet_mean_in = np.mean(np.array(PEHE_set_drnet_in))
+        PEHE_set_drnet_std_in = np.std(PEHE_set_drnet_in)
+        ATE_Metric_set_drnet_mean_in = np.mean(np.array(ATE_Metric_set_drnet_in))
+        ATE_Metric_set_drnet_std_in = np.std(ATE_Metric_set_drnet_in)
 
         print("----------------- !!DR_Net Models(Results) !! ------------------------")
         print("--" * 20)
-        print("DR_NET, PEHE: {0}, SD: {1}"
-              .format(PEHE_set_drnet_mean, PEHE_set_drnet_std))
-        print("DR_NET, ATE Metric: {0}, SD: {1}"
-              .format(ATE_Metric_set_drnet_mean, ATE_Metric_set_drnet_std))
+        print("DR_NET, PEHE_out: {0}, SD: {1}"
+              .format(PEHE_set_drnet_mean_out, PEHE_set_drnet_std_out))
+        print("DR_NET, ATE Metric_out: {0}, SD: {1}"
+              .format(ATE_Metric_set_drnet_mean_out, ATE_Metric_set_drnet_std_out))
+        print("--" * 20)
+        print("DR_NET, PEHE_in: {0}, SD: {1}"
+              .format(PEHE_set_drnet_mean_in, PEHE_set_drnet_std_in))
+        print("DR_NET, ATE Metric_in: {0}, SD: {1}"
+              .format(ATE_Metric_set_drnet_mean_in, ATE_Metric_set_drnet_std_in))
         print("--" * 20)
 
         file1.write("\n#####################")
 
         file1.write("\n---------------------")
-        file1.write("\nDR_NET, PEHE: {0}, SD: {1}"
-                    .format(PEHE_set_drnet_mean, PEHE_set_drnet_std))
-        file1.write("\nDR_NET, ATE Metric: {0}, SD: {1}"
-                    .format(ATE_Metric_set_drnet_mean,
-                            ATE_Metric_set_drnet_std))
+        file1.write("\nDR_NET, PEHE_out: {0}, SD: {1}"
+                    .format(PEHE_set_drnet_mean_out, PEHE_set_drnet_std_out))
+        file1.write("\nDR_NET, ATE Metric_out: {0}, SD: {1}"
+                    .format(ATE_Metric_set_drnet_mean_out,
+                            ATE_Metric_set_drnet_std_out))
+
+        file1.write("\nDR_NET, PEHE_in: {0}, SD: {1}"
+                    .format(PEHE_set_drnet_mean_in, PEHE_set_drnet_std_in))
+        file1.write("\nDR_NET, ATE Metric_in: {0}, SD: {1}"
+                    .format(ATE_Metric_set_drnet_mean_in,
+                            ATE_Metric_set_drnet_std_in))
 
         Utils.write_to_csv(run_parameters["consolidated_file_path"], results_list)
 
