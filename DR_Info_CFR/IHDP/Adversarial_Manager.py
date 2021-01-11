@@ -226,7 +226,7 @@ class Adversarial_Manager:
             latent_z_code = latent_z_code.detach()
             # sample from uniform(-1, 1)
             noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
-            # noise_z = (-2) * torch.rand(batch_n, noise_z_size) + 1
+            # random normal
             noise_z = torch.randn(batch_n, noise_z_size)
             noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
             # noise_netG_input = latent_z_code

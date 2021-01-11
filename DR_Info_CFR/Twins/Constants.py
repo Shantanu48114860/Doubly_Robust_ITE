@@ -12,7 +12,7 @@ class Constants:
     BETA = 1
 
     # Adversarial VAE Info GAN
-    Adversarial_epochs = 100
+    Adversarial_epochs = 1000
     Adversarial_VAE_LR = 1e-3
     INFO_GAN_G_LR = 1e-4
     INFO_GAN_D_LR = 5e-4

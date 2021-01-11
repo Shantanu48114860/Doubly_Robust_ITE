@@ -129,11 +129,11 @@ class EarlyStopping_DCN:
     """Early stops the training if validation loss doesn't improve after a given patience."""
 
     def __init__(self, patience=7, verbose=False, delta=0,
-                 dr_net_shared_path="DR_WO_Info_CFR/IHDP/Models/dr_net_phi.pth",
-                 dr_net_y1_path="DR_WO_Info_CFR/Models/IHDP/Models/dr_net_y1.pth",
-                 dr_net_y0_path="DR_WO_Info_CFR/Models/IHDP/Models/dr_net_y0.pth",
-                 pi_net_path="DR_WO_Info_CFR/Models/IHDP/Models/pi_net.pth",
-                 mu_net_path="DR_WO_Info_CFR/Models/IHDP/Models/mu_net.pth",
+                 dr_net_shared_path="DR_WO_Info_CFR/IHDP/Models_Final/dr_net_phi.pth",
+                 dr_net_y1_path="DR_WO_Info_CFR/Models_Final/IHDP/Models_Final/dr_net_y1.pth",
+                 dr_net_y0_path="DR_WO_Info_CFR/Models_Final/IHDP/Models_Final/dr_net_y0.pth",
+                 pi_net_path="DR_WO_Info_CFR/Models_Final/IHDP/Models_Final/pi_net.pth",
+                 mu_net_path="DR_WO_Info_CFR/Models_Final/IHDP/Models_Final/mu_net.pth",
                  trace_func=print):
         """
         Args:

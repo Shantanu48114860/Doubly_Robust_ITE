@@ -188,7 +188,7 @@ for batch in _data_loader:
     labels_T = T.numpy()
 
 print("------")
-mean = np.concatenate((mean, means_yf, means_ycf, means_T), axis=1)
+mean = np.concatenate((means_X, means_yf, means_ycf, means_T), axis=1)
 print(mean.shape)
 print(labels_yf)
 print(labels_ycf)
