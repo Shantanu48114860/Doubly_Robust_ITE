@@ -165,7 +165,6 @@ class Adversarial_VAE(nn.Module):
                latent_mu_ycf, latent_log_var_ycf
 
 
-
 class Generator(nn.Module):
     def __init__(self, in_nodes=Constants.Info_GAN_Gen_in_nodes,
                  shared_nodes=Constants.Info_GAN_Gen_shared_nodes,
@@ -238,56 +237,7 @@ class Discriminator(nn.Module):
         return x_t
 
 
-# class QHead(nn.Module):
-#     def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
-#                  shared_nodes=Constants.Info_GAN_Q_shared_nodes,
-#                  out_nodes=Constants.Info_GAN_Q_out_nodes):
-#         super().__init__()
-#
-#         self.hidden1 = nn.Linear(in_features=in_nodes, out_features=shared_nodes)
-#         torch.nn.init.xavier_normal_(self.hidden1.weight)
-#         torch.nn.init.zeros_(self.hidden1.bias)
-#         self.hidden2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-#         torch.nn.init.xavier_normal_(self.hidden2.weight)
-#         torch.nn.init.zeros_(self.hidden2.bias)
-#
-#         # self.bn1 = nn.BatchNorm1d(shared_nodes)
-#         self.hidden_0 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-#         torch.nn.init.xavier_normal_(self.hidden_0.weight)
-#         torch.nn.init.zeros_(self.hidden_0.bias)
-#         self.out_mu0 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-#         torch.nn.init.xavier_normal_(self.out_mu0.weight)
-#         torch.nn.init.zeros_(self.out_mu0.bias)
-#         self.out_var0 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-#         torch.nn.init.xavier_normal_(self.out_var0.weight)
-#         torch.nn.init.zeros_(self.out_var0.bias)
-#
-#         self.hidden_1 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-#         torch.nn.init.xavier_normal_(self.hidden_1.weight)
-#         torch.nn.init.zeros_(self.hidden_1.bias)
-#         self.out_mu1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-#         torch.nn.init.xavier_normal_(self.out_mu1.weight)
-#         torch.nn.init.zeros_(self.out_mu1.bias)
-#         self.out_var1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-#         torch.nn.init.xavier_normal_(self.out_var1.weight)
-#         torch.nn.init.zeros_(self.out_var1.bias)
-#
-#     def forward(self, x):
-#         x = F.relu(self.hidden1(x))
-#         x = F.relu(self.hidden2(x))
-#
-#         y0 = F.relu(self.hidden_0(x))
-#         mu0 = self.out_mu0(y0).squeeze()
-#         var0 = torch.exp(self.out_var0(y0).squeeze())
-#
-#         y1 = F.relu(self.hidden_1(x))
-#         mu1 = self.out_mu1(y1).squeeze()
-#         var1 = torch.exp(self.out_var1(y1).squeeze())
-#
-#         return mu0, var0, mu1, var1
-
-
-class QHead_y0(nn.Module):
+class QHead(nn.Module):
     def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
                  shared_nodes=Constants.Info_GAN_Q_shared_nodes,
                  out_nodes=Constants.Info_GAN_Q_out_nodes):
@@ -309,26 +259,3 @@ class QHead_y0(nn.Module):
         var0 = torch.exp(self.out_var0(x).squeeze())
 
         return mu0, var0
-
-
-class QHead_y1(nn.Module):
-    def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
-                 shared_nodes=Constants.Info_GAN_Q_shared_nodes,
-                 out_nodes=Constants.Info_GAN_Q_out_nodes):
-        super().__init__()
-
-        self.hidden1 = nn.Linear(in_features=in_nodes, out_features=shared_nodes)
-        self.hidden2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-
-        self.out_mu1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-        self.out_var1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-
-    def forward(self, x):
-        x = F.relu(self.hidden1(x))
-        x = F.relu(self.hidden2(x))
-
-        mu1 = self.out_mu1(x).squeeze()
-        var1 = torch.exp(self.out_var1(x).squeeze())
-
-        return mu1, var1
-

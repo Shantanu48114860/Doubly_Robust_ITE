@@ -236,7 +236,7 @@ class Discriminator(nn.Module):
         return x_t
 
 
-class QHead_y0(nn.Module):
+class QHead(nn.Module):
     def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
                  shared_nodes=Constants.Info_GAN_Q_shared_nodes,
                  out_nodes=Constants.Info_GAN_Q_out_nodes):
@@ -258,25 +258,3 @@ class QHead_y0(nn.Module):
         var0 = torch.exp(self.out_var0(x).squeeze())
 
         return mu0, var0
-
-
-class QHead_y1(nn.Module):
-    def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
-                 shared_nodes=Constants.Info_GAN_Q_shared_nodes,
-                 out_nodes=Constants.Info_GAN_Q_out_nodes):
-        super().__init__()
-
-        self.hidden1 = nn.Linear(in_features=in_nodes, out_features=shared_nodes)
-        self.hidden2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-
-        self.out_mu1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-        self.out_var1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-
-    def forward(self, x):
-        x = F.relu(self.hidden1(x))
-        x = F.relu(self.hidden2(x))
-
-        mu1 = self.out_mu1(x).squeeze()
-        var1 = torch.exp(self.out_var1(x).squeeze())
-
-        return mu1, var1

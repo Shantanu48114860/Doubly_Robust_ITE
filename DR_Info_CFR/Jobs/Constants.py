@@ -41,6 +41,6 @@ class Constants:
     Info_GAN_Dis_shared_nodes = 30
     Info_GAN_Dis_out_nodes = 1
 
-    Info_GAN_Q_in_nodes = 1
+    Info_GAN_Q_in_nodes = 2
     Info_GAN_Q_shared_nodes = 30
     Info_GAN_Q_out_nodes = Decoder_in_nodes

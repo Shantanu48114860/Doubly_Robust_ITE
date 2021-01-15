@@ -135,3 +135,38 @@ class mu_net(nn.Module):
         mu = self.out_mu(mu)
 
         return mu
+
+
+# class mu_net(nn.Module):
+#     def __init__(self, input_nodes, shared_nodes=200, outcome_nodes=100):
+#         super(mu_net, self).__init__()
+#
+#         self.hidden1_mu = nn.Linear(in_features=input_nodes, out_features=shared_nodes)
+#
+#         self.hidden2_mu = nn.Linear(in_features=shared_nodes, out_features=outcome_nodes)
+#
+#         # self.hidden3_mu = nn.Linear(in_features=shared_nodes, out_features=outcome_nodes)
+#         #
+#         # self.hidden4_mu = nn.Linear(in_features=outcome_nodes, out_features=outcome_nodes)
+#         #
+#         # self.hidden5_mu = nn.Linear(in_features=outcome_nodes, out_features=outcome_nodes)
+#
+#         self.out_mu = nn.Linear(in_features=outcome_nodes, out_features=1)
+#
+#     def forward(self, x, t):
+#         if torch.cuda.is_available():
+#             x = x.float().cuda()
+#         else:
+#             x = x.float()
+#
+#         x_t = torch.cat((x, t.float()), 1)
+#
+#         mu = F.elu(self.hidden1_mu(x_t))
+#         mu = F.elu(self.hidden2_mu(mu))
+#         # mu = F.elu(self.hidden3_mu(mu))
+#         #
+#         # mu = F.elu(self.hidden4_mu(mu))
+#         # mu = F.elu(self.hidden5_mu(mu))
+#         mu = torch.sigmoid(self.out_mu(mu))
+#
+#         return mu
