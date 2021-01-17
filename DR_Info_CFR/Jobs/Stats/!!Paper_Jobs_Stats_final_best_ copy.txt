@@ -1,0 +1,37 @@
+
+Today's date: 2021-01-16
+Iter: 0, drnet_bias_att_out: 0.02256665278258191, drnet_policy_risk_out: 0.1361918326453735, drnet_bias_att_in: 0.020605623769723774, drnet_policy_risk_in: 0.09111429697673401,
+
+Today's date: 2021-01-16
+Iter: 1, drnet_bias_att_out: 0.06875174056795097, drnet_policy_risk_out: 0.10865500349675017, drnet_bias_att_in: 0.027944582819360894, drnet_policy_risk_in: 0.08903898792490783,
+
+Today's date: 2021-01-16
+Iter: 2, drnet_bias_att_out: 0.0887714044455837, drnet_policy_risk_out: 0.1243575664157377, drnet_bias_att_in: 0.09246965247797022, drnet_policy_risk_in: 0.09901434652837915,
+
+Today's date: 2021-01-16
+Iter: 3, drnet_bias_att_out: 0.07287883213296183, drnet_policy_risk_out: 0.1035179803831241, drnet_bias_att_in: 0.0221105098756185, drnet_policy_risk_in: 0.09296487888933014,
+
+Today's date: 2021-01-16
+Iter: 4, drnet_bias_att_out: 0.022342547389015675, drnet_policy_risk_out: 0.0818761058980968, drnet_bias_att_in: 0.10866159854078086, drnet_policy_risk_in: 0.10461310067253127,
+
+Today's date: 2021-01-16
+Iter: 5, drnet_bias_att_out: 0.020839403210747162, drnet_policy_risk_out: 0.11741500751157008, drnet_bias_att_in: 0.04647511168288792, drnet_policy_risk_in: 0.09651192323158309,
+
+Today's date: 2021-01-16
+Iter: 6, drnet_bias_att_out: 0.1311881693561704, drnet_policy_risk_out: 0.11389360178438424, drnet_bias_att_in: 0.046717644466617574, drnet_policy_risk_in: 0.09853658122576547,
+
+Today's date: 2021-01-16
+Iter: 7, drnet_bias_att_out: 0.05717723107406595, drnet_policy_risk_out: 0.11646457077921013, drnet_bias_att_in: 0.031831118577458316, drnet_policy_risk_in: 0.09023831578079622,
+
+Today's date: 2021-01-16
+Iter: 8, drnet_bias_att_out: 0.03234961553180725, drnet_policy_risk_out: 0.11084790728640503, drnet_bias_att_in: 0.003012171455869475, drnet_policy_risk_in: 0.09377756225442846,
+
+Today's date: 2021-01-16
+Iter: 9, drnet_bias_att_out: 0.008132728748513722, drnet_policy_risk_out: 0.0722348959592779, drnet_bias_att_in: 0.04523043480900128, drnet_policy_risk_in: 0.1019467069928115,
+
+#####################
+---------------------
+DR_NET, policy_risk_out: 0.10354544721599298, SD: 0.018012853085054716
+DR_NET, bias_att_out: 0.051499832523939846, SD: 0.03659384989735909
+DR_NET, policy_risk_in: 0.09577567004772672, SD: 0.004944715973178444
+DR_NET, bias_att_in: 0.04450584484752888, SD: 0.03107282299371575
