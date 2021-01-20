@@ -9,7 +9,7 @@ class Constants:
     DRNET_SHARED_NODES = 200
     DRNET_OUTPUT_NODES = 100
     ALPHA = 1
-    BETA = 1
+    BETA = 0.5
 
     # Adversarial VAE Info GAN
     Adversarial_epochs = 1000
@@ -44,6 +44,7 @@ class Constants:
     Info_GAN_Q_in_nodes = 2
     Info_GAN_Q_shared_nodes = 30
     Info_GAN_Q_out_nodes = Decoder_in_nodes
+
 
 
 

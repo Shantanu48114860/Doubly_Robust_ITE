@@ -178,9 +178,6 @@ class Adversarial_Manager:
 
                     total_loss_train += loss_VAE.item() + loss_Discriminator.item() + loss_Generator_total.item()
                     t.set_postfix(epoch='{0}'.format(epoch),
-                                  loss_VAE='{:05.3f}'.format(loss_VAE.item()),
-                                  loss_Discriminator='{:05.3f}'.format(loss_Discriminator.item()),
-                                  loss_Generator_total='{:05.3f}'.format(loss_Generator_total.item()),
                                   loss_train='{:05.3f}'.format(total_loss_train))
                     t.update()
 

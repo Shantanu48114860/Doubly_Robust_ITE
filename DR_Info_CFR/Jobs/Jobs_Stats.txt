@@ -1,3 +1,10 @@
 
-Today's date: 2021-01-15
-Iter: 0, drnet_bias_att_out: 0.014040089652971176, drnet_policy_risk_out: 0.12883931686165562, drnet_bias_att_in: 0.058007018961780815, drnet_policy_risk_in: 0.09371057175703901,
+Today's date: 2021-01-19
+Iter: 0, drnet_bias_att_out: 0.07860533544938117, drnet_policy_risk_out: 0.13876472983850974, drnet_bias_att_in: 0.12486393150447385, drnet_policy_risk_in: 0.09423539469256437,
+
+#####################
+---------------------
+DR_NET, policy_risk_out: 0.13876472983850974, SD: 0.0
+DR_NET, bias_att_out: 0.07860533544938117, SD: 0.0
+DR_NET, policy_risk_in: 0.09423539469256437, SD: 0.0
+DR_NET, bias_att_in: 0.12486393150447385, SD: 0.0

@@ -21,7 +21,9 @@ class Constants:
     VAE_BETA = 1
     # INFO_GAN_LAMBDA = 1
     # INFO_GAN_LAMBDA = 1.5
-    INFO_GAN_LAMBDA = 1.2
+
+    # INFO_GAN_LAMBDA = 1.2
+    INFO_GAN_LAMBDA = 0.01
     INFO_GAN_ALPHA = 1
 
     Encoder_shared_nodes = 15
