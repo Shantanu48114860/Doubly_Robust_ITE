@@ -36,9 +36,9 @@ class Experiments:
             input_nodes = run_parameters["input_nodes"]
             # np_train_X, np_train_T, np_train_yf, np_train_ycf, \
             # np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
-            #     self.__load_data(train_path,
-            #                      test_path,
-            #                      iter_id)
+            #     self.dL.load_train_test_ihdp_shalit(train_path,
+            #                                         test_path,
+            #                                         iter_id)
 
             np_train_X, np_train_T, np_train_yf, np_train_ycf, \
             np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \

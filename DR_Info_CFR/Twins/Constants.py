@@ -20,10 +20,7 @@ class Constants:
     Adversarial_BATCH_SIZE = 256
     VAE_BETA = 1
     # INFO_GAN_LAMBDA = 1
-    # INFO_GAN_LAMBDA = 1.5
-
-    # INFO_GAN_LAMBDA = 1.2
-    INFO_GAN_LAMBDA = 0.01
+    INFO_GAN_LAMBDA = 1.2
     INFO_GAN_ALPHA = 1
 
     Encoder_shared_nodes = 15
@@ -45,6 +42,6 @@ class Constants:
     Info_GAN_Dis_shared_nodes = 30
     Info_GAN_Dis_out_nodes = 1
 
-    Info_GAN_Q_in_nodes = 2
+    Info_GAN_Q_in_nodes = 1
     Info_GAN_Q_shared_nodes = Decoder_in_nodes
     Info_GAN_Q_out_nodes = Decoder_in_nodes

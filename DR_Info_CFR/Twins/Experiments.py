@@ -36,7 +36,7 @@ class Experiments:
 
             np_train_X, np_train_T, np_train_yf, np_train_ycf, \
             np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
-                self.dL.load_train_test_twins_random(csv_path,
+                self.dL.load_train_test_twins_random(csv_path, iter_id,
                                                      split_size)
 
             print("-----------> !! Supervised Training(DR_NET Models_Final) !!<-----------")
@@ -267,8 +267,6 @@ class Experiments:
         ATE = Metrics.ATE(y1_true_np, y0_true_np, y1_hat_np, y0_hat_np)
         print("PEHE: {0}".format(PEHE))
         print("ATE: {0}".format(ATE))
-        # print(auc)
-
         # Utils.write_to_csv(ite_csv_path.format(iter_id), ite_dict)
         return PEHE, ATE
 

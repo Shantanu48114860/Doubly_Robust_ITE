@@ -17,7 +17,7 @@ class Utils:
         return np_arr.reshape(np_arr.shape[0], 1)
 
     @staticmethod
-    def test_train_split(np_train_X, np_train_T, np_train_yf, np_train_ycf, split_size=0.8):
+    def test_train_split(np_train_X, np_train_T, np_train_yf, np_train_ycf, iter_id, split_size=0.8):
         return sklearn.train_test_split(np_train_X, np_train_T, np_train_yf, np_train_ycf,
                                         train_size=split_size)
 

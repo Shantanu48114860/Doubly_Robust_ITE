@@ -219,8 +219,8 @@ class Discriminator(nn.Module):
         # torch.nn.init.zeros_(self.hidden1.bias)
 
         self.hidden2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-        torch.nn.init.xavier_normal_(self.hidden2.weight)
-        torch.nn.init.zeros_(self.hidden2.bias)
+        # torch.nn.init.xavier_normal_(self.hidden2.weight)
+        # torch.nn.init.zeros_(self.hidden2.bias)
 
         self.out = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
         # torch.nn.init.xavier_normal_(self.out.weight)

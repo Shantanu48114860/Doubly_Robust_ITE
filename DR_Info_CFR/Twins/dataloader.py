@@ -5,7 +5,7 @@ from Utils import Utils
 
 
 class DataLoader:
-    def load_train_test_twins_random(self, csv_path, split_size=0.8):
+    def load_train_test_twins_random(self, csv_path, iter_id, split_size=0.8):
         # print(".. Data Loading ..")
         # data load
         np_covariates_X, np_treatment_T, np_outcomes_Y_f, np_outcomes_Y_cf \
@@ -15,7 +15,7 @@ class DataLoader:
 
         np_train_X, np_test_X, np_train_T, np_test_T, np_train_yf, np_test_yf, np_train_ycf, np_test_ycf = \
             Utils.test_train_split(np_covariates_X, np_treatment_T, np_outcomes_Y_f,
-                                   np_outcomes_Y_cf, split_size)
+                                   np_outcomes_Y_cf, iter_id, split_size)
 
         print("Numpy Train Statistics:")
         print(np_train_X.shape)

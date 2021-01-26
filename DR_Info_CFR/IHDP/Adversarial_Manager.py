@@ -84,8 +84,8 @@ class Adversarial_Manager:
             total_loss_train = 0
             with tqdm(total=len(train_data_loader)) as t:
                 # VAE training
-                self.adversarial_vae.train()
                 for batch in train_data_loader:
+                    self.adversarial_vae.train()
                     covariates_X, T, y_f, y_cf = batch
                     batch_n = covariates_X.size(0)
                     covariates_X = covariates_X.to(device)
@@ -118,6 +118,8 @@ class Adversarial_Manager:
                     loss_VAE.backward()
                     adv_vae_optimizer.step()
 
+                    self.adversarial_vae.eval()
+                    [_, latent_z_code, _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
                     # GAN training
                     self.netG.train()
                     self.netD.train()

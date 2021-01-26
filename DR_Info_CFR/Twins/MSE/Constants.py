@@ -1,11 +1,11 @@
 class Constants:
     # DR_Net
-    DRNET_EPOCHS = 50
+    DRNET_EPOCHS = 100
     DRNET_SS_EPOCHS = 1
-    DRNET_LR = 1e-3
-    DRNET_LAMBDA = 0.001
-    DRNET_BATCH_SIZE = 64
-    DRNET_INPUT_NODES = 25
+    DRNET_LR = 1e-4
+    DRNET_LAMBDA = 0.0001
+    DRNET_BATCH_SIZE = 256
+    DRNET_INPUT_NODES = 30
     DRNET_SHARED_NODES = 200
     DRNET_OUTPUT_NODES = 100
     ALPHA = 1
@@ -15,11 +15,12 @@ class Constants:
     Adversarial_epochs = 1000
     Adversarial_VAE_LR = 1e-3
     INFO_GAN_G_LR = 1e-4
-    INFO_GAN_D_LR = 1e-4
+    INFO_GAN_D_LR = 5e-4
     Adversarial_LAMBDA = 1e-5
-    Adversarial_BATCH_SIZE = 64
+    Adversarial_BATCH_SIZE = 256
     VAE_BETA = 1
-    INFO_GAN_LAMBDA = 0.2
+    # INFO_GAN_LAMBDA = 1
+    INFO_GAN_LAMBDA = 1.2     
     INFO_GAN_ALPHA = 1
 
     Encoder_shared_nodes = 15
@@ -41,9 +42,6 @@ class Constants:
     Info_GAN_Dis_shared_nodes = 30
     Info_GAN_Dis_out_nodes = 1
 
-    Info_GAN_Q_in_nodes = 2
-    Info_GAN_Q_shared_nodes = 30
+    Info_GAN_Q_in_nodes = 1
+    Info_GAN_Q_shared_nodes = Decoder_in_nodes
     Info_GAN_Q_out_nodes = Decoder_in_nodes
-
-
-
