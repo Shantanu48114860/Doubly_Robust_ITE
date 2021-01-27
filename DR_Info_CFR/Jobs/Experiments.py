@@ -49,7 +49,10 @@ class Experiments:
                                                                            iter_id)
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_e, np_train_yf)
             adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,
-                                              encoder_shared_nodes=Constants.Encoder_shared_nodes,
+                                              encoder_shared_x_nodes=Constants.Encoder_x_shared_nodes,
+                                              encoder_shared_t_nodes=Constants.Encoder_t_shared_nodes,
+                                              encoder_shared_yf_nodes=Constants.Encoder_yf_shared_nodes,
+                                              encoder_shared_ycf_nodes=Constants.Encoder_ycf_shared_nodes,
                                               encoder_x_out_nodes=Constants.Encoder_x_nodes,
                                               encoder_t_out_nodes=Constants.Encoder_t_nodes,
                                               encoder_yf_out_nodes=Constants.Encoder_yf_nodes,

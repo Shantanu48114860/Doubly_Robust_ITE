@@ -10,17 +10,28 @@ from Utils import Utils, NormalNLLLoss
 
 
 class Adversarial_Manager:
-    def __init__(self, encoder_input_nodes, encoder_shared_nodes,
-                 encoder_x_out_nodes, encoder_t_out_nodes,
-                 encoder_yf_out_nodes, encoder_ycf_out_nodes,
-                 decoder_in_nodes, decoder_shared_nodes,
+    def __init__(self,
+                 encoder_input_nodes,
+                 encoder_shared_x_nodes,
+                 encoder_shared_t_nodes,
+                 encoder_shared_yf_nodes,
+                 encoder_shared_ycf_nodes,
+                 encoder_x_out_nodes,
+                 encoder_t_out_nodes,
+                 encoder_yf_out_nodes,
+                 encoder_ycf_out_nodes,
+                 decoder_in_nodes,
+                 decoder_shared_nodes,
                  decoder_out_nodes,
                  gen_in_nodes, gen_shared_nodes, gen_out_nodes,
                  dis_in_nodes, dis_shared_nodes, dis_out_nodes,
                  Q_in_nodes, Q_shared_nodes, Q_out_nodes,
                  device):
         self.adversarial_vae = Adversarial_VAE(encoder_input_nodes=encoder_input_nodes,
-                                               encoder_shared_nodes=encoder_shared_nodes,
+                                               encoder_shared_x_nodes=encoder_shared_x_nodes,
+                                               encoder_shared_t_nodes=encoder_shared_t_nodes,
+                                               encoder_shared_yf_nodes=encoder_shared_yf_nodes,
+                                               encoder_shared_ycf_nodes=encoder_shared_ycf_nodes,
                                                encoder_x_out_nodes=encoder_x_out_nodes,
                                                encoder_t_out_nodes=encoder_t_out_nodes,
                                                encoder_yf_out_nodes=encoder_yf_out_nodes,
@@ -82,6 +93,12 @@ class Adversarial_Manager:
         for epoch in range(epochs):
             epoch += 1
             total_loss_train = 0
+            total_loss_VAE = 0
+            total_loss_GEN = 0
+            total_loss_DIS = 0
+            total_loss_MI = 0
+            total_loss_Generator_F = 0
+
             with tqdm(total=len(train_data_loader)) as t:
                 # VAE training
                 self.adversarial_vae.train()
@@ -126,9 +143,10 @@ class Adversarial_Manager:
                     # sample from uniform(-1, 1)
                     noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
                     # noise_z = (-2) * torch.rand(batch_n, noise_z_size) + 1
-                    noise_z = torch.randn(batch_n, noise_z_size)
+                    # noise_z = torch.randn(batch_n, noise_z_size)
 
-                    noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
+                    # noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
+                    noise_netG_input = torch.cat((latent_z_code, covariates_X), dim=1)
 
                     y0, y1 = self.netG(noise_netG_input)
                     y_f_hat = T * y1 + (1 - T) * y0
@@ -177,7 +195,18 @@ class Adversarial_Manager:
                     G_optimizer.step()
 
                     total_loss_train += loss_VAE.item() + loss_Discriminator.item() + loss_Generator_total.item()
+                    total_loss_VAE += loss_VAE.item()
+                    total_loss_GEN += loss_Discriminator.item()
+                    total_loss_DIS += loss_Generator_total.item()
+                    total_loss_MI += loss_Info.item()
+                    total_loss_Generator_F += loss_Generator_F.item()
+
                     t.set_postfix(epoch='{0}'.format(epoch),
+                                  loss_VAE='{:05.3f}'.format(total_loss_VAE),
+                                  loss_D='{:05.3f}'.format(total_loss_GEN),
+                                  loss_MI='{:05.3f}'.format(total_loss_MI),
+                                  loss_G_F='{:05.3f}'.format(total_loss_Generator_F),
+                                  loss_G_total='{:05.3f}'.format(total_loss_DIS),
                                   loss_train='{:05.3f}'.format(total_loss_train))
                     t.update()
 
