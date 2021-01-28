@@ -247,7 +247,7 @@ class Adversarial_VAE(nn.Module):
         latent_z = torch.cat((latent_z_x, latent_z_t, latent_z_yf, latent_z_ycf), 1)
         x_hat = self.decoder(latent_z)
 
-        return x_hat, latent_z, \
+        return x_hat, latent_z, latent_z_x, latent_z_t, latent_z_yf, latent_z_ycf,  \
                latent_mu_x, latent_log_var_x, \
                latent_mu_t, latent_log_var_t, \
                latent_mu_yf, latent_log_var_yf, \
@@ -375,7 +375,7 @@ class Discriminator(nn.Module):
 #         return mu0, var0, mu1, var1
 
 
-class QHead_y0(nn.Module):
+class QHead(nn.Module):
     def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
                  shared_nodes=Constants.Info_GAN_Q_shared_nodes,
                  out_nodes=Constants.Info_GAN_Q_out_nodes):

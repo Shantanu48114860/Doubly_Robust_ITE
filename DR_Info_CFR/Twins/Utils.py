@@ -19,7 +19,33 @@ class Utils:
     @staticmethod
     def test_train_split(np_train_X, np_train_T, np_train_yf, np_train_ycf, iter_id, split_size=0.8):
         return sklearn.train_test_split(np_train_X, np_train_T, np_train_yf, np_train_ycf,
-                                        train_size=split_size)
+                                        train_size=split_size, random_state=2)
+
+    @staticmethod
+    def convert_to_tensor_with_latents(X, T, Y_f, Y_cf, np_latent_z_code,
+                                       np_latent_z_x, np_latent_z_t,
+                                       np_latent_z_yf, latent_z_ycf):
+        tensor_x = torch.stack([torch.Tensor(i) for i in X])
+        tensor_T = torch.from_numpy(T)
+        tensor_y_f = torch.from_numpy(Y_f)
+        tensor_y_cf = torch.from_numpy(Y_cf)
+
+        tensor_latent_z_code = torch.from_numpy(np_latent_z_code)
+        tensor_latent_z_x = torch.from_numpy(np_latent_z_x)
+        tensor_latent_z_t = torch.from_numpy(np_latent_z_t)
+        tensor_latent_z_yf = torch.from_numpy(np_latent_z_yf)
+        tensor_latent_z_ycf = torch.from_numpy(latent_z_ycf)
+
+        processed_dataset = torch.utils.data.TensorDataset(tensor_x,
+                                                           tensor_T,
+                                                           tensor_y_f,
+                                                           tensor_y_cf,
+                                                           tensor_latent_z_code,
+                                                           tensor_latent_z_x,
+                                                           tensor_latent_z_t,
+                                                           tensor_latent_z_yf,
+                                                           tensor_latent_z_ycf)
+        return processed_dataset
 
     @staticmethod
     def convert_to_tensor_DR_net(X, T, Y_f, Y_cf, pi, mu):

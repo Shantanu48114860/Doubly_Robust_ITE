@@ -36,11 +36,8 @@ class Experiments:
 
             np_train_X, np_train_T, np_train_yf, np_train_ycf, \
             np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
-                self.dL.load_train_test_twins_random(csv_path, iter_id,
+                self.dL.load_train_test_twins_random(csv_path,
                                                      split_size)
-
-            print("-----------> !! Supervised Training(DR_NET Models_Final) !!<-----------")
-
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
             adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,
@@ -81,11 +78,24 @@ class Experiments:
             }
             print("Adversarial Model Training started....")
             adv_manager.train_adversarial_model(_train_parameters, device)
-            np_y_cf = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
+            np_y_cf, np_latent_z_code, np_latent_z_x, np_latent_z_t, np_latent_z_yf, latent_z_ycf \
+                = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
             print("Adversarial Model Training ended....")
 
-            tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf)
+            tensor_train_dr = Utils.convert_to_tensor_with_latents(np_train_X, np_train_T, np_train_yf, np_y_cf,
+                                                                   np_latent_z_code, np_latent_z_x, np_latent_z_t,
+                                                                   np_latent_z_yf, latent_z_ycf)
+
             tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
+            test_np_y_cf, test_np_latent_z_code, test_np_latent_z_x, test_np_latent_z_t, \
+            test_np_latent_z_yf, test_latent_z_ycf \
+                = adv_manager.test_adversarial_model({"tensor_dataset": tensor_test}, device)
+            tensor_test_dr = Utils.convert_to_tensor_with_latents(np_test_X, np_test_T, np_test_yf, np_test_ycf,
+                                                                  test_np_latent_z_code, test_np_latent_z_x,
+                                                                  test_np_latent_z_t,
+                                                                  test_np_latent_z_yf, test_latent_z_ycf)
+            # tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
+
             _dr_train_parameters = {
                 "epochs": Constants.DRNET_EPOCHS,
                 "lr": Constants.DRNET_LR,
@@ -96,12 +106,15 @@ class Experiments:
                 "BETA": Constants.BETA,
                 "train_dataset": tensor_train_dr
             }
+            print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
             drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
+                                          input_nodes_mu_x=Constants.DRNET_INPUT_NODES_x,
+                                          input_nodes_mu_t=Constants.DRNET_INPUT_NODES_t,
                                           shared_nodes=Constants.DRNET_SHARED_NODES,
                                           outcome_nodes=Constants.DRNET_OUTPUT_NODES,
                                           device=device)
             drnet_manager.train_DR_NET(_dr_train_parameters, device)
-            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
+            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test_dr}, device)
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
             drnet_PEHE_out, drnet_ATE_metric_out = \
@@ -110,10 +123,10 @@ class Experiments:
                     dr_eval_out["y0_hat_list"],
                     dr_eval_out["y1_true_list"],
                     dr_eval_out["y0_true_list"])
-            print("drnet_PEHE_out: ", drnet_PEHE_out)
-            print("drnet_ATE_metric_out: ", drnet_ATE_metric_out)
+            print("drnet_PEHE: ", drnet_PEHE_out)
+            print("drnet_ATE_metric: ", drnet_ATE_metric_out)
 
-            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train}, device)
+            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train_dr}, device)
             print("---" * 20)
             drnet_PEHE_in, drnet_ATE_metric_in = \
                 self.__process_evaluated_metric(
@@ -121,8 +134,8 @@ class Experiments:
                     dr_eval_in["y0_hat_list"],
                     dr_eval_in["y1_true_list"],
                     dr_eval_in["y0_true_list"])
-            print("drnet_PEHE_in: ", drnet_PEHE_in)
-            print("drnet_ATE_metric_in: ", drnet_ATE_metric_in)
+            print("drnet_PEHE: ", drnet_PEHE_in)
+            print("drnet_ATE_metric: ", drnet_ATE_metric_in)
 
             print("---" * 20)
 
@@ -164,7 +177,7 @@ class Experiments:
         ATE_Metric_set_drnet_mean_in = np.mean(np.array(ATE_Metric_set_drnet_in))
         ATE_Metric_set_drnet_std_in = np.std(ATE_Metric_set_drnet_in)
 
-        print("----------------- !!DR_Net Models_Final(Results) !! ------------------------")
+        print("----------------- !!DR_Net Models(Results) !! ------------------------")
         print("--" * 20)
         print("DR_NET, PEHE_out: {0}, SD: {1}"
               .format(PEHE_set_drnet_mean_out, PEHE_set_drnet_std_out))
@@ -231,13 +244,17 @@ class Experiments:
 
             run_parameters[
                 "Model_DCN_PM_GAN_02_shared"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_02_y1"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_02_y0"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y0_iter_{0}.pth"
+            run_parameters[
+                "Model_DCN_PM_GAN_02_y1"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y1_iter_{0}.pth"
+            run_parameters[
+                "Model_DCN_PM_GAN_02_y0"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y0_iter_{0}.pth"
 
             run_parameters[
                 "Model_DCN_PM_GAN_05_shared"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_05_y1"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_05_y0"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y0_iter_{0}.pth"
+            run_parameters[
+                "Model_DCN_PM_GAN_05_y1"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y1_iter_{0}.pth"
+            run_parameters[
+                "Model_DCN_PM_GAN_05_y0"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y0_iter_{0}.pth"
 
             run_parameters[
                 "Model_DCN_PM_GAN_PD_shared"] = "./Models_Final/PM_GAN_PD/DCN_PM_GAN_dropout_PD_shared_iter_{0}.pth"

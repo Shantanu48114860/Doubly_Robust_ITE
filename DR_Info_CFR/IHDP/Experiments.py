@@ -34,16 +34,16 @@ class Experiments:
             print("iter_id: {0}".format(iter_id))
             print("--" * 20)
             input_nodes = run_parameters["input_nodes"]
-            # np_train_X, np_train_T, np_train_yf, np_train_ycf, \
-            # np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
-            #     self.dL.load_train_test_ihdp_shalit(train_path,
-            #                                         test_path,
-            #                                         iter_id)
-
             np_train_X, np_train_T, np_train_yf, np_train_ycf, \
             np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
-                self.dL.load_train_test_ihdp_random(csv_path,
-                                                    split_size)
+                self.dL.load_train_test_ihdp_shalit(train_path,
+                                                    test_path,
+                                                    iter_id)
+
+            # np_train_X, np_train_T, np_train_yf, np_train_ycf, \
+            # np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
+            #     self.dL.load_train_test_ihdp_random(csv_path,
+            #                                         split_size)
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
             adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,

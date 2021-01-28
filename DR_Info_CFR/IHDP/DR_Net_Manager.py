@@ -14,7 +14,7 @@ class DRNet_Manager:
                  shared_nodes,
                  outcome_nodes,
                  device):
-        self.dr_net_phi = DRNetPhi(input_nodes=input_nodes,
+        self.dr_net_phi = DRNetPhi(input_nodes=input_nodes + 10,
                                    shared_nodes=shared_nodes).to(device)
 
         self.dr_net_h_y1 = DRNetH_Y1(input_nodes=shared_nodes,
@@ -26,8 +26,7 @@ class DRNet_Manager:
         self.pi_net = pi_net(input_nodes=input_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
-        self.mu_net = mu_net(input_nodes_x=input_nodes_mu_x,
-                             input_nodes_t=input_nodes_mu_t,
+        self.mu_net = mu_net(input_nodes=input_nodes_mu_x + 10,
                              shared_nodes=shared_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
@@ -83,10 +82,12 @@ class DRNet_Manager:
                     optimizer_mu.zero_grad()
 
                     pi = self.pi_net(covariates_X)
-                    mu = self.mu_net(covariates_X, T)
+                    mu = self.mu_net(covariates_X, tensor_latent_z_yf, tensor_latent_z_ycf)
 
-                    y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
-                    y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+                    y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X, tensor_latent_z_yf,
+                                                              tensor_latent_z_ycf))
+                    y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X, tensor_latent_z_yf,
+                                                              tensor_latent_z_ycf))
 
                     T_float = T.float()
 
@@ -155,8 +156,8 @@ class DRNet_Manager:
             covariates_X, T, yf, ycf, tensor_latent_z_code, tensor_latent_z_x, tensor_latent_z_t, \
             tensor_latent_z_yf, tensor_latent_z_ycf = batch
             covariates_X = covariates_X.to(device)
-            y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
-            y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+            y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X, tensor_latent_z_yf, tensor_latent_z_ycf))
+            y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X, tensor_latent_z_yf, tensor_latent_z_ycf))
 
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())

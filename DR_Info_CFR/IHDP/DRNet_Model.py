@@ -14,12 +14,17 @@ class DRNetPhi(nn.Module):
 
         self.shared3 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
 
-    def forward(self, x):
+    def forward(self, x, tensor_latent_z_yf, tensor_latent_z_ycf):
         if torch.cuda.is_available():
             x = x.float().cuda()
+            tensor_latent_z_yf = tensor_latent_z_yf.float().cuda()
+            tensor_latent_z_ycf = tensor_latent_z_ycf.float().cuda()
         else:
             x = x.float()
+            tensor_latent_z_yf = tensor_latent_z_yf.float()
+            tensor_latent_z_ycf = tensor_latent_z_ycf.float()
         # shared layers
+        x = torch.cat((x, tensor_latent_z_yf, tensor_latent_z_ycf), dim=1)
         x = F.elu(self.shared1(x))
         x = F.elu(self.shared2(x))
         x = F.elu(self.shared3(x))
@@ -103,29 +108,29 @@ class pi_net(nn.Module):
 
 
 class mu_net(nn.Module):
-    def __init__(self, input_nodes_x, input_nodes_t, shared_nodes=200, outcome_nodes=100):
+    def __init__(self, input_nodes, shared_nodes=200, outcome_nodes=100):
         super(mu_net, self).__init__()
 
-        self.hidden1_mu_x = nn.Linear(in_features=input_nodes_x, out_features=shared_nodes)
-        self.hidden1_mu_t = nn.Linear(in_features=input_nodes_t, out_features=shared_nodes)
+        self.hidden1_mu_x = nn.Linear(in_features=input_nodes, out_features=shared_nodes)
 
         self.hidden2_mu = nn.Linear(in_features=shared_nodes, out_features=outcome_nodes)
         self.hidden3_mu = nn.Linear(in_features=outcome_nodes, out_features=outcome_nodes)
 
         self.out_mu = nn.Linear(in_features=outcome_nodes, out_features=1)
 
-    def forward(self, x, t):
+    def forward(self, x, tensor_latent_z_yf, tensor_latent_z_ycf):
         if torch.cuda.is_available():
             x = x.float().cuda()
-            t = t.float().cuda()
+            tensor_latent_z_yf = tensor_latent_z_yf.float().cuda()
+            tensor_latent_z_ycf = tensor_latent_z_ycf.float().cuda()
         else:
             x = x.float()
-            t = t.float()
+            tensor_latent_z_yf = tensor_latent_z_yf.float()
+            tensor_latent_z_ycf = tensor_latent_z_ycf.float()
 
-        mu_x = F.elu(self.hidden1_mu_x(x))
-        mu_t = F.elu(self.hidden1_mu_t(t))
-        mu_x_t = mu_x + mu_t
-        mu = F.elu(self.hidden2_mu(mu_x_t))
+        mu = torch.cat((x, tensor_latent_z_yf, tensor_latent_z_ycf), dim=1)
+        mu = F.elu(self.hidden1_mu_x(mu))
+        mu = F.elu(self.hidden2_mu(mu))
         mu = F.elu(self.hidden3_mu(mu))
         mu = self.out_mu(mu)
 

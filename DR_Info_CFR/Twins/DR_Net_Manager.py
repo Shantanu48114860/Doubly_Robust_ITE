@@ -8,8 +8,13 @@ from DRNet_Model import DRNetPhi, DRNetH_Y1, DRNetH_Y0, pi_net, mu_net
 
 
 class DRNet_Manager:
-    def __init__(self, input_nodes, shared_nodes, outcome_nodes, device):
-        self.dr_net_phi = DRNetPhi(input_nodes=input_nodes,
+    def __init__(self, input_nodes,
+                 input_nodes_mu_x,
+                 input_nodes_mu_t,
+                 shared_nodes,
+                 outcome_nodes,
+                 device):
+        self.dr_net_phi = DRNetPhi(input_nodes=input_nodes + 10,
                                    shared_nodes=shared_nodes).to(device)
 
         self.dr_net_h_y1 = DRNetH_Y1(input_nodes=shared_nodes,
@@ -21,7 +26,7 @@ class DRNet_Manager:
         self.pi_net = pi_net(input_nodes=input_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
-        self.mu_net = mu_net(input_nodes=input_nodes + 1,
+        self.mu_net = mu_net(input_nodes=input_nodes_mu_x + 10,
                              shared_nodes=shared_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
@@ -49,8 +54,8 @@ class DRNet_Manager:
         optimizer_pi = optim.Adam(self.pi_net.parameters(), lr=lr, weight_decay=weight_decay)
         optimizer_mu = optim.Adam(self.mu_net.parameters(), lr=lr, weight_decay=weight_decay)
 
-        loss_F_BCE = nn.BCELoss()
-        loss_CF_BCE = nn.BCELoss()
+        loss_F_MSE = nn.MSELoss()
+        loss_CF_MSE = nn.MSELoss()
         loss_DR_F_MSE = nn.MSELoss()
         loss_DR_CF_MSE = nn.MSELoss()
         lossBCE = nn.BCELoss()
@@ -65,17 +70,10 @@ class DRNet_Manager:
                 self.pi_net.train()
                 self.mu_net.train()
                 for batch in train_data_loader:
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, y_f, y_cf, tensor_latent_z_code, tensor_latent_z_x, tensor_latent_z_t, \
+                    tensor_latent_z_yf, tensor_latent_z_ycf = batch
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
-
-                    idx = (T == 1).squeeze()
-
-                    covariates_X_treated = covariates_X[idx]
-                    covariates_X_control = covariates_X[~idx]
-
-                    treated_size = covariates_X_treated.size(0)
-                    control_size = covariates_X_control.size(0)
 
                     optimizer_W.zero_grad()
                     optimizer_V1.zero_grad()
@@ -84,10 +82,12 @@ class DRNet_Manager:
                     optimizer_mu.zero_grad()
 
                     pi = self.pi_net(covariates_X)
-                    mu = self.mu_net(covariates_X, T)
+                    mu = self.mu_net(covariates_X, tensor_latent_z_yf, tensor_latent_z_ycf)
 
-                    y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
-                    y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+                    y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X, tensor_latent_z_yf,
+                                                              tensor_latent_z_ycf))
+                    y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X, tensor_latent_z_yf,
+                                                              tensor_latent_z_ycf))
 
                     T_float = T.float()
 
@@ -102,19 +102,21 @@ class DRNet_Manager:
 
                     loss_pi = lossBCE(pi, T_float).to(device)
                     if torch.cuda.is_available():
-                        loss_F = loss_F_BCE(y_f_hat.float().cuda(),
+                        loss_F = loss_F_MSE(y_f_hat.float().cuda(),
                                             y_f.float().cuda()).to(device)
-                        loss_CF = loss_CF_BCE(y_cf_hat.float().cuda(),
+                        loss_CF = loss_CF_MSE(y_cf_hat.float().cuda(),
                                               y_cf.float().cuda()).to(device)
+
                         loss_DR_F = loss_DR_F_MSE(y_f_dr.float().cuda(),
                                                   y_f.float().cuda()).to(device)
                         loss_DR_CF = loss_DR_CF_MSE(y_cf_dr.float().cuda(),
                                                     y_cf.float().cuda()).to(device)
                     else:
-                        loss_F = loss_F_BCE(y_f_hat.float(),
+                        loss_F = loss_F_MSE(y_f_hat.float(),
                                             y_f.float()).to(device)
-                        loss_CF = loss_CF_BCE(y_cf_hat.float(),
+                        loss_CF = loss_CF_MSE(y_cf_hat.float(),
                                               y_cf.float()).to(device)
+
                         loss_DR_F = loss_DR_F_MSE(y_f_dr.float(),
                                                   y_f.float()).to(device)
                         loss_DR_CF = loss_DR_CF_MSE(y_cf_dr.float(),
@@ -151,11 +153,11 @@ class DRNet_Manager:
         y0_true_list = []
 
         for batch in _data_loader:
-            covariates_X, T, yf, ycf = batch
+            covariates_X, T, yf, ycf, tensor_latent_z_code, tensor_latent_z_x, tensor_latent_z_t, \
+            tensor_latent_z_yf, tensor_latent_z_ycf = batch
             covariates_X = covariates_X.to(device)
-
-            y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
-            y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+            y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X, tensor_latent_z_yf, tensor_latent_z_ycf))
+            y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X, tensor_latent_z_yf, tensor_latent_z_ycf))
 
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())
