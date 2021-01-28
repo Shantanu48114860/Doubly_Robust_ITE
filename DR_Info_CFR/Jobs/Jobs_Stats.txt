@@ -1,10 +1,37 @@
 
-Today's date: 2021-01-25
-Iter: 0, drnet_bias_att_out: 0.028733884795080163, drnet_policy_risk_out: 0.1315519740190354, drnet_bias_att_in: 0.07505362469695302, drnet_policy_risk_in: 0.09208685488955315,
+Today's date: 2021-01-27
+Iter: 0, drnet_bias_att_out: 0.013386333474877332, drnet_policy_risk_out: 0.12963295178386092, drnet_bias_att_in: 0.02878460060143854, drnet_policy_risk_in: 0.09067769816995752,
+
+Today's date: 2021-01-28
+Iter: 1, drnet_bias_att_out: 0.07602840896631058, drnet_policy_risk_out: 0.10600921355495696, drnet_bias_att_in: 0.024088850522431024, drnet_policy_risk_in: 0.08691549713524771,
+
+Today's date: 2021-01-28
+Iter: 2, drnet_bias_att_out: 0.034422900530264144, drnet_policy_risk_out: 0.1281991704840717, drnet_bias_att_in: 0.03439236510977996, drnet_policy_risk_in: 0.0805520887161808,
+
+Today's date: 2021-01-28
+Iter: 3, drnet_bias_att_out: 0.11383727623206778, drnet_policy_risk_out: 0.10370731639115471, drnet_bias_att_in: 0.06124415961424012, drnet_policy_risk_in: 0.10155292326864473,
+
+Today's date: 2021-01-28
+Iter: 4, drnet_bias_att_out: 0.02198011959345219, drnet_policy_risk_out: 0.08074078825225972, drnet_bias_att_in: 0.10912302099287463, drnet_policy_risk_in: 0.10452836307636915,
+
+Today's date: 2021-01-28
+Iter: 5, drnet_bias_att_out: 0.11337154234714969, drnet_policy_risk_out: 0.11782917770167889, drnet_bias_att_in: 0.1382706965554683, drnet_policy_risk_in: 0.09797268928220126,
+
+Today's date: 2021-01-28
+Iter: 6, drnet_bias_att_out: 0.17940212501390898, drnet_policy_risk_out: 0.1187106663164692, drnet_bias_att_in: 0.0945617269318946, drnet_policy_risk_in: 0.09701214090227672,
+
+Today's date: 2021-01-28
+Iter: 7, drnet_bias_att_out: 0.030721873651900225, drnet_policy_risk_out: 0.10803075130864703, drnet_bias_att_in: 0.005768482463274327, drnet_policy_risk_in: 0.08984764182221183,
+
+Today's date: 2021-01-28
+Iter: 8, drnet_bias_att_out: 0.047985365456335624, drnet_policy_risk_out: 0.105862596192146, drnet_bias_att_in: 0.013977830916567409, drnet_policy_risk_in: 0.09023478713651178,
+
+Today's date: 2021-01-28
+Iter: 9, drnet_bias_att_out: 0.10218703732217616, drnet_policy_risk_out: 0.09966139027397025, drnet_bias_att_in: 0.13977461732912191, drnet_policy_risk_in: 0.10190343513951161,
 
 #####################
 ---------------------
-DR_NET, policy_risk_out: 0.1315519740190354, SD: 0.0
-DR_NET, bias_att_out: 0.028733884795080163, SD: 0.0
-DR_NET, policy_risk_in: 0.09208685488955315, SD: 0.0
-DR_NET, bias_att_in: 0.07505362469695302, SD: 0.0
+DR_NET, policy_risk_out: 0.10983840222592153, SD: 0.013758930961764615
+DR_NET, bias_att_out: 0.07333229825884427, SD: 0.050534234833255656
+DR_NET, policy_risk_in: 0.09411972646491132, SD: 0.007270229495624734
+DR_NET, bias_att_in: 0.06499863510370908, SD: 0.04881436304611148

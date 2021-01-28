@@ -36,10 +36,10 @@ class Experiments:
 
             np_train_X, np_train_T, np_train_yf, np_train_ycf, \
             np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
-                self.dL.load_train_test_twins_random(csv_path, iter_id,
+                self.dL.load_train_test_twins_random(csv_path,
                                                      split_size)
 
-            print("-----------> !! Supervised Training(DR_NET Models_Final) !!<-----------")
+            print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
 
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
@@ -161,7 +161,7 @@ class Experiments:
         ATE_Metric_set_drnet_mean_in = np.mean(np.array(ATE_Metric_set_drnet_in))
         ATE_Metric_set_drnet_std_in = np.std(ATE_Metric_set_drnet_in)
 
-        print("----------------- !!DR_Net Models_Final(Results) !! ------------------------")
+        print("----------------- !!DR_Net Models(Results) !! ------------------------")
         print("--" * 20)
         print("DR_NET, PEHE_out: {0}, SD: {1}"
               .format(PEHE_set_drnet_mean_out, PEHE_set_drnet_std_out))
@@ -210,36 +210,36 @@ class Experiments:
             run_parameters["DCN_PM_GAN_PD"] = "./MSE/ITE/ITE_DCN_PM_GAN_dropout_PD_iter_{0}.csv"
 
             # model paths DCN
-            run_parameters["Model_DCN_PD_shared"] = "./Models_Final/DCN_PD/DCN_PD_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PD_y1"] = "./Models_Final/DCN_PD/DCN_PD_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PD_y0"] = "./Models_Final/DCN_PD/DCN_PD_y2_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_shared"] = "./Models/DCN_PD/DCN_PD_shared_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_y1"] = "./Models/DCN_PD/DCN_PD_y1_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_y0"] = "./Models/DCN_PD/DCN_PD_y2_iter_{0}.pth"
 
-            run_parameters["Model_DCN_PD_02_shared"] = "./Models_Final/DCN_PD_02/DCN_PD_02_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PD_02_y1"] = "./Models_Final/DCN_PD_02/DCN_PD_02_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PD_02_y0"] = "./Models_Final/DCN_PD_02/DCN_PD_02_y2_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_02_shared"] = "./Models/DCN_PD_02/DCN_PD_02_shared_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_02_y1"] = "./Models/DCN_PD_02/DCN_PD_02_y1_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_02_y0"] = "./Models/DCN_PD_02/DCN_PD_02_y2_iter_{0}.pth"
 
-            run_parameters["Model_DCN_PD_05_shared"] = "./Models_Final/DCN_PD_05/DCN_PD_05_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PD_05_y1"] = "./Models_Final/DCN_PD_05/DCN_PD_05_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PD_05_y0"] = "./Models_Final/DCN_PD_05/DCN_PD_05_y2_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_05_shared"] = "./Models/DCN_PD_05/DCN_PD_05_shared_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_05_y1"] = "./Models/DCN_PD_05/DCN_PD_05_y1_iter_{0}.pth"
+            run_parameters["Model_DCN_PD_05_y0"] = "./Models/DCN_PD_05/DCN_PD_05_y2_iter_{0}.pth"
 
-            run_parameters["Model_DCN_PM_GAN_shared"] = "./Models_Final/PM_GAN/DCN_PM_GAN_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_y1"] = "./Models_Final/PM_GAN/DCN_PM_GAN_iter_y1_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_y0"] = "./Models_Final/PM_GAN/DCN_PM_GAN_iter_y0_{0}.pth"
-
-            run_parameters[
-                "Model_DCN_PM_GAN_02_shared"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_02_y1"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_02_y0"] = "./Models_Final/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y0_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_shared"] = "./Models/PM_GAN/DCN_PM_GAN_shared_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_y1"] = "./Models/PM_GAN/DCN_PM_GAN_iter_y1_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_y0"] = "./Models/PM_GAN/DCN_PM_GAN_iter_y0_{0}.pth"
 
             run_parameters[
-                "Model_DCN_PM_GAN_05_shared"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_05_y1"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_05_y0"] = "./Models_Final/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y0_iter_{0}.pth"
+                "Model_DCN_PM_GAN_02_shared"] = "./Models/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_shared_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_02_y1"] = "./Models/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y1_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_02_y0"] = "./Models/PM_GAN_DR_02/DCN_PM_GAN_dropout_02_y0_iter_{0}.pth"
 
             run_parameters[
-                "Model_DCN_PM_GAN_PD_shared"] = "./Models_Final/PM_GAN_PD/DCN_PM_GAN_dropout_PD_shared_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_PD_y1"] = "./Models_Final/PM_GAN_PD/DCN_PM_GAN_dropout_PD_y1_iter_{0}.pth"
-            run_parameters["Model_DCN_PM_GAN_PD_y0"] = "./Models_Final/PM_GAN_PD/DCN_PM_GAN_dropout_PD_y0_iter_{0}.pth"
+                "Model_DCN_PM_GAN_05_shared"] = "./Models/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_shared_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_05_y1"] = "./Models/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y1_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_05_y0"] = "./Models/PM_GAN_DR_05/DCN_PM_GAN_dropout_05_y0_iter_{0}.pth"
+
+            run_parameters[
+                "Model_DCN_PM_GAN_PD_shared"] = "./Models/PM_GAN_PD/DCN_PM_GAN_dropout_PD_shared_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_PD_y1"] = "./Models/PM_GAN_PD/DCN_PM_GAN_dropout_PD_y1_iter_{0}.pth"
+            run_parameters["Model_DCN_PM_GAN_PD_y0"] = "./Models/PM_GAN_PD/DCN_PM_GAN_dropout_PD_y0_iter_{0}.pth"
 
             run_parameters["TARNET"] = "./MSE/ITE/ITE_TARNET_iter_{0}.csv"
 
@@ -267,6 +267,8 @@ class Experiments:
         ATE = Metrics.ATE(y1_true_np, y0_true_np, y1_hat_np, y0_hat_np)
         print("PEHE: {0}".format(PEHE))
         print("ATE: {0}".format(ATE))
+        # print(auc)
+
         # Utils.write_to_csv(ite_csv_path.format(iter_id), ite_dict)
         return PEHE, ATE
 

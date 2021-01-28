@@ -153,6 +153,8 @@ class DRNet_Manager:
         for batch in _data_loader:
             covariates_X, T, yf, ycf = batch
             covariates_X = covariates_X.to(device)
+            # y1_hat = torch.round(self.dr_net_h_y1(self.dr_net_phi(covariates_X)))
+            # y0_hat = torch.round(self.dr_net_h_y0(self.dr_net_phi(covariates_X)))
 
             y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
             y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))

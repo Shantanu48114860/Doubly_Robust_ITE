@@ -118,8 +118,6 @@ class Adversarial_Manager:
                     loss_VAE.backward()
                     adv_vae_optimizer.step()
 
-                    self.adversarial_vae.eval()
-                    [_, latent_z_code, _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
                     # GAN training
                     self.netG.train()
                     self.netD.train()
