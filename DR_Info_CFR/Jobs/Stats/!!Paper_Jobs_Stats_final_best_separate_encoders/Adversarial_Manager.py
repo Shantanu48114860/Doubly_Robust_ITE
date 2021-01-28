@@ -135,8 +135,6 @@ class Adversarial_Manager:
                     loss_VAE.backward()
                     adv_vae_optimizer.step()
 
-                    # self.adversarial_vae.eval()
-                    # [_, latent_z_code, _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
                     # GAN training
                     self.netG.train()
                     self.netD.train()
@@ -145,11 +143,11 @@ class Adversarial_Manager:
                     # sample from uniform(-1, 1)
                     noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
                     # noise_z = (-2) * torch.rand(batch_n, noise_z_size) + 1
-                    noise_z = torch.randn(batch_n, noise_z_size)
+                    # noise_z = torch.randn(batch_n, noise_z_size)
 
-                    noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
+                    # noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
+                    noise_netG_input = torch.cat((latent_z_code, covariates_X), dim=1)
 
-                    # noise_netG_input = latent_z_code
                     y0, y1 = self.netG(noise_netG_input)
                     y_f_hat = T * y1 + (1 - T) * y0
 

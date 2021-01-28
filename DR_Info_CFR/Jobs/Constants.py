@@ -37,7 +37,7 @@ class Constants:
     Decoder_shared_nodes = Decoder_in_nodes
     Decoder_out_nodes = DRNET_INPUT_NODES
 
-    Info_GAN_Gen_in_nodes = Decoder_in_nodes + DRNET_INPUT_NODES
+    Info_GAN_Gen_in_nodes = 200
     Info_GAN_Gen_shared_nodes = 200
     Info_GAN_Gen_out_nodes = 1
 
