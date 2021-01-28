@@ -10,8 +10,7 @@ from Utils import Utils, NormalNLLLoss
 
 
 class Adversarial_Manager:
-    def __init__(self,
-                 encoder_input_nodes,
+    def __init__(self, encoder_input_nodes,
                  encoder_shared_x_nodes,
                  encoder_shared_t_nodes,
                  encoder_shared_yf_nodes,
@@ -93,17 +92,11 @@ class Adversarial_Manager:
         for epoch in range(epochs):
             epoch += 1
             total_loss_train = 0
-            total_loss_VAE = 0
-            total_loss_GEN = 0
-            total_loss_DIS = 0
-            total_loss_MI = 0
-            total_loss_Generator_F = 0
-
             with tqdm(total=len(train_data_loader)) as t:
                 # VAE training
-                self.adversarial_vae.train()
                 for batch in train_data_loader:
-                    covariates_X, T, e, y_f = batch
+                    self.adversarial_vae.train()
+                    covariates_X, T, y_f, y_cf = batch
                     batch_n = covariates_X.size(0)
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
@@ -111,6 +104,7 @@ class Adversarial_Manager:
 
                     # vae reconstruction
                     [covariates_X_hat, latent_z_code,
+                     _, _, _, _,
                      latent_mu_x, latent_log_var_x,
                      latent_mu_t, latent_log_var_t,
                      latent_mu_yf, latent_log_var_yf,
@@ -144,26 +138,27 @@ class Adversarial_Manager:
                     latent_z_code = latent_z_code.detach()
                     # sample from uniform(-1, 1)
                     noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
-                    # noise_z = (-2) * torch.rand(batch_n, noise_z_size) + 1
                     noise_z = torch.randn(batch_n, noise_z_size)
 
                     noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
-
                     # noise_netG_input = latent_z_code
+
+                    # noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
+
                     y0, y1 = self.netG(noise_netG_input)
                     y_f_hat = T * y1 + (1 - T) * y0
 
                     y0_sigmoid = torch.sigmoid(y0)
                     y1_sigmoid = torch.sigmoid(y1)
+                    # y_f_sigmoid = torch.sigmoid(y_f)
 
                     netD_y0 = ((1 - T) * y_f + T * y0_sigmoid).type(torch.FloatTensor)  # if t = 0
                     netD_y1 = (T * y_f + (1 - T) * y1_sigmoid).type(torch.FloatTensor)  # if t = 1
 
                     # Discriminator loss and gradients
-
                     d_logit = self.netD(covariates_X,
-                                        netD_y0.to(device).detach(),
-                                        netD_y1.to(device).detach())
+                                        netD_y0.to(device),
+                                        netD_y1.to(device))
                     loss_Discriminator = loss_D(d_logit, T_float).to(device)
                     D_optimizer.zero_grad()
                     loss_Discriminator.backward(retain_graph=True)
@@ -180,35 +175,32 @@ class Adversarial_Manager:
                     d_logit = self.netD(covariates_X,
                                         netD_y0.to(device),
                                         netD_y1.to(device))
-
                     # Q training
                     q_input = torch.cat((y0, y1), dim=1)
                     q_mu0, q_var0 = self.netQ(q_input)
+                    # q_mu0, q_var0 = self.netQ0(y0)
+                    # q_mu1, q_var1 = self.netQ1(y1)
                     con_loss0 = loss_Q_con(latent_z_code, q_mu0, q_var0) * 0.1
 
                     # Generator and Q losses and gradients
                     loss_Generator = -loss_D(d_logit, T_float).to(device)
-                    loss_Info = INFO_GAN_LAMBDA * (con_loss0)
+                    loss_Info = INFO_GAN_LAMBDA * con_loss0
                     loss_Generator_total = loss_Generator + INFO_GAN_ALPHA * loss_Generator_F + loss_Info
 
                     G_optimizer.zero_grad()
-
                     loss_Generator_total.backward()
                     G_optimizer.step()
 
-                    total_loss_train += loss_VAE.item() + loss_Discriminator.item() + loss_Generator_total.item()
-                    total_loss_VAE += loss_VAE.item()
-                    total_loss_GEN += loss_Discriminator.item()
-                    total_loss_DIS += loss_Generator_total.item()
-                    total_loss_MI += loss_Info.item()
-                    total_loss_Generator_F += loss_Generator_F.item()
+                    # print(loss_Discriminator)
+                    # print(loss_Generator)
+                    # print(con_loss0)
+                    # print(con_loss1)
 
+                    total_loss_train += loss_VAE.item() + loss_Discriminator.item() + loss_Generator_total.item()
                     t.set_postfix(epoch='{0}'.format(epoch),
-                                  loss_VAE='{:05.3f}'.format(total_loss_VAE),
-                                  loss_D='{:05.3f}'.format(total_loss_GEN),
-                                  loss_MI='{:05.3f}'.format(total_loss_MI),
-                                  loss_G_F='{:05.3f}'.format(total_loss_Generator_F),
-                                  loss_G_total='{:05.3f}'.format(total_loss_DIS),
+                                  loss_VAE='{:05.3f}'.format(loss_VAE.item()),
+                                  loss_Discriminator='{:05.3f}'.format(loss_Discriminator.item()),
+                                  loss_Generator_total='{:05.3f}'.format(loss_Generator_total.item()),
                                   loss_train='{:05.3f}'.format(total_loss_train))
                     t.update()
 
@@ -228,18 +220,25 @@ class Adversarial_Manager:
         self.netQ.eval()
 
         ycf_list = []
+        latent_z_code_list = []
+        latent_z_x_list = []
+        latent_z_t_list = []
+        latent_z_yf_list = []
+        latent_z_ycf_list = []
+
         for batch in _data_loader:
             covariates_X, T, y_f, _ = batch
             batch_n = covariates_X.size(0)
             covariates_X = covariates_X.to(device)
             # vae test
-            [_, latent_z_code, _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
+            [_, latent_z_code, latent_z_x, latent_z_t, latent_z_yf, latent_z_ycf,
+             _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
 
             # GAN test
             latent_z_code = latent_z_code.detach()
             # sample from uniform(-1, 1)
             noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
-            # noise_z = (-2) * torch.rand(batch_n, noise_z_size) + 1
+            # random normal
             noise_z = torch.randn(batch_n, noise_z_size)
             noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
             # noise_netG_input = latent_z_code
@@ -247,8 +246,20 @@ class Adversarial_Manager:
             y0, y1 = self.netG(noise_netG_input)
             y0_sigmoid = torch.sigmoid(y0)
             y1_sigmoid = torch.sigmoid(y1)
-            y_cf = T * y0_sigmoid + (1 - T) * y1_sigmoid
-            # y_cf = T * y0 + (1 - T) * y1
+            # y_cf = T * y0_sigmoid + (1 - T) * y1_sigmoid
+            y_cf = T * y0 + (1 - T) * y1
             ycf_list.append(y_cf.item())
 
-        return Utils.convert_to_col_vector(np.array(ycf_list))
+            latent_z_code_list.append(latent_z_code.squeeze().tolist())
+            latent_z_x_list.append(latent_z_x.squeeze().tolist())
+            latent_z_t_list.append(latent_z_t.squeeze().tolist())
+            latent_z_yf_list.append(latent_z_yf.squeeze().tolist())
+            latent_z_ycf_list.append(latent_z_ycf.squeeze().tolist())
+
+
+        return Utils.convert_to_col_vector(np.asarray(ycf_list)), \
+               np.asarray(latent_z_code_list), \
+               np.asarray(latent_z_x_list), \
+               np.asarray(latent_z_t_list), \
+               np.asarray(latent_z_yf_list), \
+               np.asarray(latent_z_ycf_list)

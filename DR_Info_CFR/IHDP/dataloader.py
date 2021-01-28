@@ -9,6 +9,7 @@ from Utils import Utils
 class DataLoader:
     @staticmethod
     def load_train_test_ihdp_shalit(train_path, test_path, iter_id):
+        iter_id = 8
         train_arr = np.load(train_path)
         test_arr = np.load(test_path)
         np_train_X = train_arr['x'][:, :, iter_id]

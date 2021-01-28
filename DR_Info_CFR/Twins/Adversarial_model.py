@@ -5,33 +5,39 @@ import torch.nn.functional as F
 from Constants import Constants
 
 
-class Encoder_shared(nn.Module):
+class Encoder_x(nn.Module):
     def __init__(self, input_nodes=Constants.DRNET_INPUT_NODES,
-                 shared_nodes=Constants.Encoder_shared_nodes):
-        super(Encoder_shared, self).__init__()
+                 shared_nodes=Constants.Encoder_x_shared_nodes,
+                 out_nodes=Constants.Encoder_x_nodes):
+        super(Encoder_x, self).__init__()
         self.shared1 = nn.Linear(in_features=input_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared1.weight)
+        torch.nn.init.zeros_(self.shared1.bias)
 
         self.shared2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared2.weight)
+        torch.nn.init.zeros_(self.shared2.bias)
 
         self.shared3 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared3.weight)
+        torch.nn.init.zeros_(self.shared3.bias)
+
+        self.out = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.out.weight)
+        torch.nn.init.zeros_(self.out.bias)
+
+        self.fc_mu = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_mu.weight)
+        torch.nn.init.zeros_(self.fc_mu.bias)
+
+        self.fc_log_var = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_log_var.weight)
+        torch.nn.init.zeros_(self.fc_log_var.bias)
 
     def forward(self, x):
         x = F.relu((self.shared1(x)))
         x = F.relu((self.shared2(x)))
         x = F.relu((self.shared3(x)))
-        return x
-
-
-class Encoder_x(nn.Module):
-    def __init__(self, shared_nodes=Constants.Encoder_shared_nodes,
-                 out_nodes=Constants.Encoder_x_nodes):
-        super(Encoder_x, self).__init__()
-        self.out = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-
-        self.fc_mu = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-        self.fc_log_var = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-
-    def forward(self, x):
         x = F.relu((self.out(x)))
         x_mu = self.fc_mu(x)
         x_log_var = self.fc_log_var(x)
@@ -39,15 +45,38 @@ class Encoder_x(nn.Module):
 
 
 class Encoder_t(nn.Module):
-    def __init__(self, shared_nodes=Constants.Encoder_shared_nodes,
+    def __init__(self, input_nodes=Constants.DRNET_INPUT_NODES,
+                 shared_nodes=Constants.Encoder_t_shared_nodes,
                  out_nodes=Constants.Encoder_t_nodes):
         super(Encoder_t, self).__init__()
+        self.shared1 = nn.Linear(in_features=input_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared1.weight)
+        torch.nn.init.zeros_(self.shared1.bias)
+
+        self.shared2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared2.weight)
+        torch.nn.init.zeros_(self.shared2.bias)
+
+        self.shared3 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared3.weight)
+        torch.nn.init.zeros_(self.shared3.bias)
+
         self.out = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.out.weight)
+        torch.nn.init.zeros_(self.out.bias)
 
         self.fc_mu = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_mu.weight)
+        torch.nn.init.zeros_(self.fc_mu.bias)
+
         self.fc_log_var = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_log_var.weight)
+        torch.nn.init.zeros_(self.fc_log_var.bias)
 
     def forward(self, x):
+        x = F.relu((self.shared1(x)))
+        x = F.relu((self.shared2(x)))
+        x = F.relu((self.shared3(x)))
         x = F.relu((self.out(x)))
         x_mu = self.fc_mu(x)
         x_log_var = self.fc_log_var(x)
@@ -55,15 +84,38 @@ class Encoder_t(nn.Module):
 
 
 class Encoder_yf(nn.Module):
-    def __init__(self, shared_nodes=Constants.Encoder_shared_nodes,
+    def __init__(self, input_nodes=Constants.DRNET_INPUT_NODES,
+                 shared_nodes=Constants.Encoder_yf_shared_nodes,
                  out_nodes=Constants.Encoder_yf_nodes):
         super(Encoder_yf, self).__init__()
+        self.shared1 = nn.Linear(in_features=input_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared1.weight)
+        torch.nn.init.zeros_(self.shared1.bias)
+
+        self.shared2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared2.weight)
+        torch.nn.init.zeros_(self.shared2.bias)
+
+        self.shared3 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared3.weight)
+        torch.nn.init.zeros_(self.shared3.bias)
+
         self.out = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.out.weight)
+        torch.nn.init.zeros_(self.out.bias)
 
         self.fc_mu = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_mu.weight)
+        torch.nn.init.zeros_(self.fc_mu.bias)
+
         self.fc_log_var = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_log_var.weight)
+        torch.nn.init.zeros_(self.fc_log_var.bias)
 
     def forward(self, x):
+        x = F.relu((self.shared1(x)))
+        x = F.relu((self.shared2(x)))
+        x = F.relu((self.shared3(x)))
         x = F.relu((self.out(x)))
         x_mu = self.fc_mu(x)
         x_log_var = self.fc_log_var(x)
@@ -71,15 +123,38 @@ class Encoder_yf(nn.Module):
 
 
 class Encoder_ycf(nn.Module):
-    def __init__(self, shared_nodes=Constants.Encoder_shared_nodes,
+    def __init__(self, input_nodes=Constants.DRNET_INPUT_NODES,
+                 shared_nodes=Constants.Encoder_ycf_shared_nodes,
                  out_nodes=Constants.Encoder_ycf_nodes):
         super(Encoder_ycf, self).__init__()
+        self.shared1 = nn.Linear(in_features=input_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared1.weight)
+        torch.nn.init.zeros_(self.shared1.bias)
+
+        self.shared2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared2.weight)
+        torch.nn.init.zeros_(self.shared2.bias)
+
+        self.shared3 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared3.weight)
+        torch.nn.init.zeros_(self.shared3.bias)
+
         self.out = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.out.weight)
+        torch.nn.init.zeros_(self.out.bias)
 
         self.fc_mu = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_mu.weight)
+        torch.nn.init.zeros_(self.fc_mu.bias)
+
         self.fc_log_var = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.fc_log_var.weight)
+        torch.nn.init.zeros_(self.fc_log_var.bias)
 
     def forward(self, x):
+        x = F.relu((self.shared1(x)))
+        x = F.relu((self.shared2(x)))
+        x = F.relu((self.shared3(x)))
         x = F.relu((self.out(x)))
         x_mu = self.fc_mu(x)
         x_log_var = self.fc_log_var(x)
@@ -92,12 +167,20 @@ class Decoder(nn.Module):
                  out_nodes=Constants.Decoder_out_nodes):
         super(Decoder, self).__init__()
         self.shared1 = nn.Linear(in_features=in_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared1.weight)
+        torch.nn.init.zeros_(self.shared1.bias)
 
         self.shared2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared2.weight)
+        torch.nn.init.zeros_(self.shared2.bias)
 
         self.shared3 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+        torch.nn.init.xavier_normal_(self.shared3.weight)
+        torch.nn.init.zeros_(self.shared3.bias)
 
         self.out_nodes = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+        torch.nn.init.xavier_normal_(self.out_nodes.weight)
+        torch.nn.init.zeros_(self.out_nodes.bias)
 
     def forward(self, x):
         x = F.relu((self.shared1(x)))
@@ -108,8 +191,12 @@ class Decoder(nn.Module):
 
 
 class Adversarial_VAE(nn.Module):
-    def __init__(self, encoder_input_nodes=Constants.DRNET_INPUT_NODES,
-                 encoder_shared_nodes=Constants.Encoder_shared_nodes,
+    def __init__(self,
+                 encoder_input_nodes=Constants.DRNET_INPUT_NODES,
+                 encoder_shared_x_nodes=Constants.Encoder_x_shared_nodes,
+                 encoder_shared_t_nodes=Constants.Encoder_t_shared_nodes,
+                 encoder_shared_yf_nodes=Constants.Encoder_yf_shared_nodes,
+                 encoder_shared_ycf_nodes=Constants.Encoder_ycf_shared_nodes,
                  encoder_x_out_nodes=Constants.Encoder_x_nodes,
                  encoder_t_out_nodes=Constants.Encoder_t_nodes,
                  encoder_yf_out_nodes=Constants.Encoder_yf_nodes,
@@ -118,16 +205,19 @@ class Adversarial_VAE(nn.Module):
                  decoder_shared_nodes=Constants.Decoder_shared_nodes,
                  decoder_out_nodes=Constants.Decoder_out_nodes):
         super(Adversarial_VAE, self).__init__()
-        self.encoder_shared = Encoder_shared(input_nodes=encoder_input_nodes,
-                                             shared_nodes=encoder_shared_nodes)
-        self.encoder_x = Encoder_x(shared_nodes=encoder_shared_nodes,
+        self.encoder_x = Encoder_x(input_nodes=encoder_input_nodes,
+                                   shared_nodes=encoder_shared_x_nodes,
                                    out_nodes=encoder_x_out_nodes)
-        self.encoder_t = Encoder_t(shared_nodes=encoder_shared_nodes,
+        self.encoder_t = Encoder_t(input_nodes=encoder_input_nodes,
+                                   shared_nodes=encoder_shared_t_nodes,
                                    out_nodes=encoder_t_out_nodes)
-        self.encoder_yf = Encoder_yf(shared_nodes=encoder_shared_nodes,
+        self.encoder_yf = Encoder_yf(input_nodes=encoder_input_nodes,
+                                     shared_nodes=encoder_shared_yf_nodes,
                                      out_nodes=encoder_yf_out_nodes)
-        self.encoder_ycf = Encoder_ycf(shared_nodes=encoder_shared_nodes,
+        self.encoder_ycf = Encoder_ycf(input_nodes=encoder_input_nodes,
+                                       shared_nodes=encoder_shared_ycf_nodes,
                                        out_nodes=encoder_ycf_out_nodes)
+
         self.decoder = Decoder(in_nodes=decoder_in_nodes,
                                shared_nodes=decoder_shared_nodes,
                                out_nodes=decoder_out_nodes)
@@ -144,10 +234,10 @@ class Adversarial_VAE(nn.Module):
             return mu
 
     def forward(self, x):
-        latent_mu_x, latent_log_var_x = self.encoder_x(self.encoder_shared(x))
-        latent_mu_t, latent_log_var_t = self.encoder_t(self.encoder_shared(x))
-        latent_mu_yf, latent_log_var_yf = self.encoder_yf(self.encoder_shared(x))
-        latent_mu_ycf, latent_log_var_ycf = self.encoder_ycf(self.encoder_shared(x))
+        latent_mu_x, latent_log_var_x = self.encoder_x(x)
+        latent_mu_t, latent_log_var_t = self.encoder_t(x)
+        latent_mu_yf, latent_log_var_yf = self.encoder_yf(x)
+        latent_mu_ycf, latent_log_var_ycf = self.encoder_ycf(x)
 
         latent_z_x = self.re_parametrize(latent_mu_x, latent_log_var_x)
         latent_z_t = self.re_parametrize(latent_mu_t, latent_log_var_t)
@@ -317,33 +407,33 @@ class QHead_y0(nn.Module):
         return mu0, var0
 
 
-class QHead_y1(nn.Module):
-    def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
-                 shared_nodes=Constants.Info_GAN_Q_shared_nodes,
-                 out_nodes=Constants.Info_GAN_Q_out_nodes):
-        super().__init__()
-
-        self.hidden1 = nn.Linear(in_features=in_nodes, out_features=shared_nodes)
-        torch.nn.init.xavier_normal_(self.hidden1.weight)
-        torch.nn.init.zeros_(self.hidden1.bias)
-
-        self.hidden2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
-        torch.nn.init.xavier_normal_(self.hidden2.weight)
-        torch.nn.init.zeros_(self.hidden2.bias)
-
-        self.out_mu1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-        torch.nn.init.xavier_normal_(self.out_mu1.weight)
-        torch.nn.init.zeros_(self.out_mu1.bias)
-
-        self.out_var1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
-        torch.nn.init.xavier_normal_(self.out_var1.weight)
-        torch.nn.init.zeros_(self.out_var1.bias)
-
-    def forward(self, x):
-        x = F.relu(self.hidden1(x))
-        x = F.relu(self.hidden2(x))
-
-        mu1 = self.out_mu1(x).squeeze()
-        var1 = torch.exp(self.out_var1(x).squeeze())
-
-        return mu1, var1
+# class QHead_y1(nn.Module):
+#     def __init__(self, in_nodes=Constants.Info_GAN_Q_in_nodes,
+#                  shared_nodes=Constants.Info_GAN_Q_shared_nodes,
+#                  out_nodes=Constants.Info_GAN_Q_out_nodes):
+#         super().__init__()
+#
+#         self.hidden1 = nn.Linear(in_features=in_nodes, out_features=shared_nodes)
+#         torch.nn.init.xavier_normal_(self.hidden1.weight)
+#         torch.nn.init.zeros_(self.hidden1.bias)
+#
+#         self.hidden2 = nn.Linear(in_features=shared_nodes, out_features=shared_nodes)
+#         torch.nn.init.xavier_normal_(self.hidden2.weight)
+#         torch.nn.init.zeros_(self.hidden2.bias)
+#
+#         self.out_mu1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+#         torch.nn.init.xavier_normal_(self.out_mu1.weight)
+#         torch.nn.init.zeros_(self.out_mu1.bias)
+#
+#         self.out_var1 = nn.Linear(in_features=shared_nodes, out_features=out_nodes)
+#         torch.nn.init.xavier_normal_(self.out_var1.weight)
+#         torch.nn.init.zeros_(self.out_var1.bias)
+#
+#     def forward(self, x):
+#         x = F.relu(self.hidden1(x))
+#         x = F.relu(self.hidden2(x))
+#
+#         mu1 = self.out_mu1(x).squeeze()
+#         var1 = torch.exp(self.out_var1(x).squeeze())
+#
+#         return mu1, var1

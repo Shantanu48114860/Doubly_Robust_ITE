@@ -86,12 +86,25 @@ class Experiments:
             }
             print("Adversarial Model Training started....")
             adv_manager.train_adversarial_model(_train_parameters, device)
-            np_y_cf = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
+            np_y_cf, np_latent_z_code, np_latent_z_x, np_latent_z_t, np_latent_z_yf, latent_z_ycf \
+                = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
             print("Adversarial Model Training ended....")
 
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
-            tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf)
+            tensor_train_dr = Utils.convert_to_tensor_with_latents(np_train_X, np_train_T, np_train_yf, np_y_cf,
+                                                                   np_latent_z_code, np_latent_z_x, np_latent_z_t,
+                                                                   np_latent_z_yf, latent_z_ycf)
+
             tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_e, np_test_yf)
+            test_np_y_cf, test_np_latent_z_code, test_np_latent_z_x, test_np_latent_z_t, \
+            test_np_latent_z_yf, test_latent_z_ycf \
+                = adv_manager.test_adversarial_model({"tensor_dataset": tensor_test}, device)
+
+            tensor_test_dr = Utils.convert_to_tensor_with_latents(np_test_X, np_test_T, np_test_e, np_test_yf,
+                                                                  test_np_latent_z_code, test_np_latent_z_x,
+                                                                  test_np_latent_z_t,
+                                                                  test_np_latent_z_yf, test_latent_z_ycf)
+
             drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
                                           shared_nodes=Constants.DRNET_SHARED_NODES,
                                           outcome_nodes=Constants.DRNET_OUTPUT_NODES,
@@ -108,8 +121,8 @@ class Experiments:
                 "train_dataset": tensor_train_dr
             }
             drnet_manager.train_DR_NET(_dr_train_parameters, device)
-            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
-            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train}, device)
+            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test_dr}, device)
+            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train_dr}, device)
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
 
@@ -313,7 +326,6 @@ class Experiments:
         # Final ATT
         ATT = np.abs(ATT_value - ATT_estimate)
         return [RPol, ATT]
-
 
     # def get_consolidated_file_name(self, ps_model_type):
     #     if ps_model_type == Constants.PS_MODEL_NN:

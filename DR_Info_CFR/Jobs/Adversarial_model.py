@@ -247,7 +247,7 @@ class Adversarial_VAE(nn.Module):
         latent_z = torch.cat((latent_z_x, latent_z_t, latent_z_yf, latent_z_ycf), 1)
         x_hat = self.decoder(latent_z)
 
-        return x_hat, latent_z, \
+        return x_hat, latent_z, latent_z_x, latent_z_t, latent_z_yf, latent_z_ycf,  \
                latent_mu_x, latent_log_var_x, \
                latent_mu_t, latent_log_var_t, \
                latent_mu_yf, latent_log_var_yf, \

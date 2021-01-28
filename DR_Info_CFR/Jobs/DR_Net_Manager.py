@@ -20,7 +20,7 @@ class DRNet_Manager:
         self.pi_net = pi_net(input_nodes=input_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
-        self.mu_net = mu_net(input_nodes=input_nodes + 1,
+        self.mu_net = mu_net(input_nodes=input_nodes + 5 + 1,
                              shared_nodes=shared_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
@@ -64,10 +64,11 @@ class DRNet_Manager:
                 self.pi_net.train()
                 self.mu_net.train()
                 for batch in train_data_loader:
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, y_f, y_cf, tensor_latent_z_code, tensor_latent_z_x, tensor_latent_z_t, \
+                    tensor_latent_z_yf, tensor_latent_z_ycf = batch
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
-
+                    T_float = T.float()
                     idx = (T == 1).squeeze()
 
                     covariates_X_treated = covariates_X[idx]
@@ -83,21 +84,21 @@ class DRNet_Manager:
                     optimizer_mu.zero_grad()
 
                     pi = self.pi_net(covariates_X)
-                    mu = self.mu_net(covariates_X, T)
+                    mu = self.mu_net(covariates_X, tensor_latent_z_t, T_float)
 
                     y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
                     y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
 
-                    T_float = T.float()
+
 
                     y_f_hat = y1_hat * T_float + y0_hat * (1 - T_float)
                     y_cf_hat = y1_hat * (1 - T_float) + y0_hat * T_float
 
                     y_f_dr = torch.sigmoid(T_float * ((T_float * y1_hat - (T_float - pi) * mu) / pi) + \
-                             (1 - T_float) * (((1 - T_float) * y0_hat - (T_float - pi) * mu) / (1 - pi)))
+                                           (1 - T_float) * (((1 - T_float) * y0_hat - (T_float - pi) * mu) / (1 - pi)))
 
                     y_cf_dr = torch.sigmoid((1 - T_float) * (((1 - T_float) * y1_hat - (T_float - pi) * mu) / pi) + \
-                             T_float * ((T_float * y0_hat - (T_float - pi) * mu) / (1 - pi)))
+                                            T_float * ((T_float * y0_hat - (T_float - pi) * mu) / (1 - pi)))
 
                     loss_pi = lossBCE(pi, T_float).to(device)
                     if torch.cuda.is_available():
@@ -153,7 +154,9 @@ class DRNet_Manager:
         T_list = []
 
         for batch in _data_loader:
-            covariates_X, T, e, y_f = batch
+            covariates_X, T, e, y_f, tensor_latent_z_code, test_np_latent_z_x, \
+            test_np_latent_z_t, \
+            test_np_latent_z_yf, test_latent_z_ycf = batch
             covariates_X = covariates_X.to(device)
             y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
             y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))

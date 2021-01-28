@@ -47,7 +47,10 @@ class Experiments:
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
             adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,
-                                              encoder_shared_nodes=Constants.Encoder_shared_nodes,
+                                              encoder_shared_x_nodes=Constants.Encoder_x_shared_nodes,
+                                              encoder_shared_t_nodes=Constants.Encoder_t_shared_nodes,
+                                              encoder_shared_yf_nodes=Constants.Encoder_yf_shared_nodes,
+                                              encoder_shared_ycf_nodes=Constants.Encoder_ycf_shared_nodes,
                                               encoder_x_out_nodes=Constants.Encoder_x_nodes,
                                               encoder_t_out_nodes=Constants.Encoder_t_nodes,
                                               encoder_yf_out_nodes=Constants.Encoder_yf_nodes,
@@ -81,11 +84,22 @@ class Experiments:
             }
             print("Adversarial Model Training started....")
             adv_manager.train_adversarial_model(_train_parameters, device)
-            np_y_cf = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
+            np_y_cf, np_latent_z_code, np_latent_z_x, np_latent_z_t, np_latent_z_yf, latent_z_ycf \
+                = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
             print("Adversarial Model Training ended....")
 
-            tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf)
+            tensor_train_dr = Utils.convert_to_tensor_with_latents(np_train_X, np_train_T, np_train_yf, np_y_cf,
+                                                                   np_latent_z_code, np_latent_z_x, np_latent_z_t,
+                                                                   np_latent_z_yf, latent_z_ycf)
+
             tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
+            test_np_y_cf, test_np_latent_z_code, test_np_latent_z_x, test_np_latent_z_t, \
+            test_np_latent_z_yf, test_latent_z_ycf \
+                = adv_manager.test_adversarial_model({"tensor_dataset": tensor_test}, device)
+            tensor_test_dr = Utils.convert_to_tensor_with_latents(np_test_X, np_test_T, np_test_yf, np_test_ycf,
+                                                                  test_np_latent_z_code, test_np_latent_z_x,
+                                                                  test_np_latent_z_t,
+                                                                  test_np_latent_z_yf, test_latent_z_ycf)
             # tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
             _dr_train_parameters = {
@@ -100,11 +114,13 @@ class Experiments:
             }
             print("-----------> !! Supervised Training(DR_NET Models) !!<-----------")
             drnet_manager = DRNet_Manager(input_nodes=Constants.DRNET_INPUT_NODES,
+                                          input_nodes_mu_x=Constants.DRNET_INPUT_NODES_x,
+                                          input_nodes_mu_t=Constants.DRNET_INPUT_NODES_t,
                                           shared_nodes=Constants.DRNET_SHARED_NODES,
                                           outcome_nodes=Constants.DRNET_OUTPUT_NODES,
                                           device=device)
             drnet_manager.train_DR_NET(_dr_train_parameters, device)
-            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test}, device)
+            dr_eval_out = drnet_manager.test_DR_NET({"tensor_dataset": tensor_test_dr}, device)
             print("---" * 20)
             print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
             drnet_PEHE_out, drnet_ATE_metric_out = \
@@ -116,7 +132,7 @@ class Experiments:
             print("drnet_PEHE: ", drnet_PEHE_out)
             print("drnet_ATE_metric: ", drnet_ATE_metric_out)
 
-            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train}, device)
+            dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train_dr}, device)
             print("---" * 20)
             drnet_PEHE_in, drnet_ATE_metric_in = \
                 self.__process_evaluated_metric(

@@ -10,17 +10,27 @@ from Utils import Utils, NormalNLLLoss
 
 
 class Adversarial_Manager:
-    def __init__(self, encoder_input_nodes, encoder_shared_nodes,
-                 encoder_x_out_nodes, encoder_t_out_nodes,
-                 encoder_yf_out_nodes, encoder_ycf_out_nodes,
-                 decoder_in_nodes, decoder_shared_nodes,
+    def __init__(self, encoder_input_nodes,
+                 encoder_shared_x_nodes,
+                 encoder_shared_t_nodes,
+                 encoder_shared_yf_nodes,
+                 encoder_shared_ycf_nodes,
+                 encoder_x_out_nodes,
+                 encoder_t_out_nodes,
+                 encoder_yf_out_nodes,
+                 encoder_ycf_out_nodes,
+                 decoder_in_nodes,
+                 decoder_shared_nodes,
                  decoder_out_nodes,
                  gen_in_nodes, gen_shared_nodes, gen_out_nodes,
                  dis_in_nodes, dis_shared_nodes, dis_out_nodes,
                  Q_in_nodes, Q_shared_nodes, Q_out_nodes,
                  device):
         self.adversarial_vae = Adversarial_VAE(encoder_input_nodes=encoder_input_nodes,
-                                               encoder_shared_nodes=encoder_shared_nodes,
+                                               encoder_shared_x_nodes=encoder_shared_x_nodes,
+                                               encoder_shared_t_nodes=encoder_shared_t_nodes,
+                                               encoder_shared_yf_nodes=encoder_shared_yf_nodes,
+                                               encoder_shared_ycf_nodes=encoder_shared_ycf_nodes,
                                                encoder_x_out_nodes=encoder_x_out_nodes,
                                                encoder_t_out_nodes=encoder_t_out_nodes,
                                                encoder_yf_out_nodes=encoder_yf_out_nodes,
@@ -38,8 +48,8 @@ class Adversarial_Manager:
                                   out_nodes=dis_out_nodes).to(device)
 
         self.netQ = QHead(in_nodes=Q_in_nodes,
-                              shared_nodes=Q_shared_nodes,
-                              out_nodes=Q_out_nodes).to(device)
+                          shared_nodes=Q_shared_nodes,
+                          out_nodes=Q_out_nodes).to(device)
 
     def train_adversarial_model(self, train_parameters, device):
         epochs = train_parameters["epochs"]
@@ -94,6 +104,7 @@ class Adversarial_Manager:
 
                     # vae reconstruction
                     [covariates_X_hat, latent_z_code,
+                     _, _, _, _,
                      latent_mu_x, latent_log_var_x,
                      latent_mu_t, latent_log_var_t,
                      latent_mu_yf, latent_log_var_yf,
@@ -118,8 +129,8 @@ class Adversarial_Manager:
                     loss_VAE.backward()
                     adv_vae_optimizer.step()
 
-                    self.adversarial_vae.eval()
-                    [_, latent_z_code, _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
+                    # self.adversarial_vae.eval()
+                    # [_, latent_z_code, _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
                     # GAN training
                     self.netG.train()
                     self.netD.train()
@@ -127,19 +138,19 @@ class Adversarial_Manager:
                     latent_z_code = latent_z_code.detach()
                     # sample from uniform(-1, 1)
                     noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
-                    # noise_z = (-2) * torch.rand(batch_n, noise_z_size) + 1
                     noise_z = torch.randn(batch_n, noise_z_size)
 
-                    # noise_netG_input = torch.cat((latent_z_code, covariates_X), dim=1)
+                    noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
                     # noise_netG_input = latent_z_code
 
-                    noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
+                    # noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
 
                     y0, y1 = self.netG(noise_netG_input)
                     y_f_hat = T * y1 + (1 - T) * y0
 
                     y0_sigmoid = torch.sigmoid(y0)
                     y1_sigmoid = torch.sigmoid(y1)
+                    # y_f_sigmoid = torch.sigmoid(y_f)
 
                     netD_y0 = ((1 - T) * y_f + T * y0_sigmoid).type(torch.FloatTensor)  # if t = 0
                     netD_y1 = (T * y_f + (1 - T) * y1_sigmoid).type(torch.FloatTensor)  # if t = 1
@@ -187,6 +198,9 @@ class Adversarial_Manager:
 
                     total_loss_train += loss_VAE.item() + loss_Discriminator.item() + loss_Generator_total.item()
                     t.set_postfix(epoch='{0}'.format(epoch),
+                                  loss_VAE='{:05.3f}'.format(loss_VAE.item()),
+                                  loss_Discriminator='{:05.3f}'.format(loss_Discriminator.item()),
+                                  loss_Generator_total='{:05.3f}'.format(loss_Generator_total.item()),
                                   loss_train='{:05.3f}'.format(total_loss_train))
                     t.update()
 
@@ -206,12 +220,19 @@ class Adversarial_Manager:
         self.netQ.eval()
 
         ycf_list = []
+        latent_z_code_list = []
+        latent_z_x_list = []
+        latent_z_t_list = []
+        latent_z_yf_list = []
+        latent_z_ycf_list = []
+
         for batch in _data_loader:
             covariates_X, T, y_f, _ = batch
             batch_n = covariates_X.size(0)
             covariates_X = covariates_X.to(device)
             # vae test
-            [_, latent_z_code, _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
+            [_, latent_z_code, latent_z_x, latent_z_t, latent_z_yf, latent_z_ycf,
+             _, _, _, _, _, _, _, _] = self.adversarial_vae(covariates_X)
 
             # GAN test
             latent_z_code = latent_z_code.detach()
@@ -229,4 +250,16 @@ class Adversarial_Manager:
             y_cf = T * y0 + (1 - T) * y1
             ycf_list.append(y_cf.item())
 
-        return Utils.convert_to_col_vector(np.array(ycf_list))
+            latent_z_code_list.append(latent_z_code.squeeze().tolist())
+            latent_z_x_list.append(latent_z_x.squeeze().tolist())
+            latent_z_t_list.append(latent_z_t.squeeze().tolist())
+            latent_z_yf_list.append(latent_z_yf.squeeze().tolist())
+            latent_z_ycf_list.append(latent_z_ycf.squeeze().tolist())
+
+
+        return Utils.convert_to_col_vector(np.asarray(ycf_list)), \
+               np.asarray(latent_z_code_list), \
+               np.asarray(latent_z_x_list), \
+               np.asarray(latent_z_t_list), \
+               np.asarray(latent_z_yf_list), \
+               np.asarray(latent_z_ycf_list)

@@ -39,6 +39,32 @@ class Utils:
         return processed_dataset
 
     @staticmethod
+    def convert_to_tensor_with_latents(X, T, Y_f, Y_cf, np_latent_z_code,
+                                       np_latent_z_x, np_latent_z_t,
+                                       np_latent_z_yf, latent_z_ycf):
+        tensor_x = torch.stack([torch.Tensor(i) for i in X])
+        tensor_T = torch.from_numpy(T)
+        tensor_y_f = torch.from_numpy(Y_f)
+        tensor_y_cf = torch.from_numpy(Y_cf)
+
+        tensor_latent_z_code = torch.from_numpy(np_latent_z_code)
+        tensor_latent_z_x = torch.from_numpy(np_latent_z_x)
+        tensor_latent_z_t = torch.from_numpy(np_latent_z_t)
+        tensor_latent_z_yf = torch.from_numpy(np_latent_z_yf)
+        tensor_latent_z_ycf = torch.from_numpy(latent_z_ycf)
+
+        processed_dataset = torch.utils.data.TensorDataset(tensor_x,
+                                                           tensor_T,
+                                                           tensor_y_f,
+                                                           tensor_y_cf,
+                                                           tensor_latent_z_code,
+                                                           tensor_latent_z_x,
+                                                           tensor_latent_z_t,
+                                                           tensor_latent_z_yf,
+                                                           tensor_latent_z_ycf)
+        return processed_dataset
+
+    @staticmethod
     def convert_to_tensor(X, T, Y_f, Y_cf):
         tensor_x = torch.stack([torch.Tensor(i) for i in X])
         tensor_T = torch.from_numpy(T)

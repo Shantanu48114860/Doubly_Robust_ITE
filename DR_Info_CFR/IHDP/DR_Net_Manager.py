@@ -8,7 +8,12 @@ from DRNet_Model import DRNetPhi, DRNetH_Y1, DRNetH_Y0, pi_net, mu_net
 
 
 class DRNet_Manager:
-    def __init__(self, input_nodes, shared_nodes, outcome_nodes, device):
+    def __init__(self, input_nodes,
+                 input_nodes_mu_x,
+                 input_nodes_mu_t,
+                 shared_nodes,
+                 outcome_nodes,
+                 device):
         self.dr_net_phi = DRNetPhi(input_nodes=input_nodes,
                                    shared_nodes=shared_nodes).to(device)
 
@@ -21,7 +26,8 @@ class DRNet_Manager:
         self.pi_net = pi_net(input_nodes=input_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
-        self.mu_net = mu_net(input_nodes=input_nodes + 1,
+        self.mu_net = mu_net(input_nodes_x=input_nodes_mu_x,
+                             input_nodes_t=input_nodes_mu_t,
                              shared_nodes=shared_nodes,
                              outcome_nodes=outcome_nodes).to(device)
 
@@ -65,7 +71,8 @@ class DRNet_Manager:
                 self.pi_net.train()
                 self.mu_net.train()
                 for batch in train_data_loader:
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, y_f, y_cf, tensor_latent_z_code, tensor_latent_z_x, tensor_latent_z_t, \
+                    tensor_latent_z_yf, tensor_latent_z_ycf = batch
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
 
@@ -145,7 +152,8 @@ class DRNet_Manager:
         y0_true_list = []
 
         for batch in _data_loader:
-            covariates_X, T, yf, ycf = batch
+            covariates_X, T, yf, ycf, tensor_latent_z_code, tensor_latent_z_x, tensor_latent_z_t, \
+            tensor_latent_z_yf, tensor_latent_z_ycf = batch
             covariates_X = covariates_X.to(device)
             y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
             y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))

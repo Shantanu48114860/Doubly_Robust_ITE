@@ -118,13 +118,15 @@ class mu_net(nn.Module):
 
         self.out_mu = nn.Linear(in_features=outcome_nodes, out_features=1)
 
-    def forward(self, x, t):
+    def forward(self, x, latent_t, T):
         if torch.cuda.is_available():
             x = x.float().cuda()
+            t = latent_t.float().cuda()
         else:
             x = x.float()
+            t = latent_t.float()
 
-        x_t = torch.cat((x, t.float()), 1)
+        x_t = torch.cat((x, t, T), 1)
 
         mu = F.elu(self.hidden1_mu(x_t))
         mu = F.elu(self.hidden2_mu(mu))
