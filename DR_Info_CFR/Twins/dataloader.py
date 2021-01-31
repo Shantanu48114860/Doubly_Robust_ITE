@@ -8,10 +8,24 @@ class DataLoader:
     def load_train_test_twins_random(self, csv_path, split_size=0.8):
         # print(".. Data Loading ..")
         # data load
-        np_covariates_X, np_treatment_T, np_outcomes_Y_f, np_outcomes_Y_cf \
+        np_covariates_X, np_treatment_T, np_outcomes_Y_f, np_outcomes_Y_cf, no \
             = self.preprocess_dataset_for_training(csv_path)
         print("ps_np_covariates_X: {0}".format(np_covariates_X.shape))
         print("ps_np_treatment_Y: {0}".format(np_treatment_T.shape))
+
+        idx = np.random.permutation(no)
+        train_idx = idx[:int(split_size * no)]
+        test_idx = idx[int(split_size * no):]
+
+        # np_train_X = np_covariates_X[train_idx, :]
+        # np_train_T = np_treatment_T[train_idx, :]
+        # np_train_yf = np_outcomes_Y_f[train_idx, :]
+        # np_train_ycf = np_outcomes_Y_cf[train_idx, :]
+        #
+        # np_test_X = np_covariates_X[test_idx, :]
+        # np_test_T = np_treatment_T[test_idx, :]
+        # np_test_yf = np_outcomes_Y_f[test_idx, :]
+        # np_test_ycf = np_outcomes_Y_cf[test_idx, :]
 
         np_train_X, np_test_X, np_train_T, np_test_T, np_train_yf, np_test_yf, np_train_ycf, np_test_ycf = \
             Utils.test_train_split(np_covariates_X, np_treatment_T, np_outcomes_Y_f,
@@ -81,4 +95,4 @@ class DataLoader:
         # print(y_f[1])
         # print(y_cf[1])
 
-        return x, t, y_f, y_cf
+        return x, t, y_f, y_cf, no
