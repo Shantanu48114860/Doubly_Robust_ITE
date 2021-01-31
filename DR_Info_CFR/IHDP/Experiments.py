@@ -5,6 +5,7 @@ import numpy as np
 
 from Adversarial_Manager import Adversarial_Manager
 from Constants import Constants
+from DR_NET_Manager_woDR import DRNet_Manager_wo_DR_Net
 from DR_Net_Manager import DRNet_Manager
 from Metrics import Metrics
 from Utils import Utils
@@ -112,9 +113,11 @@ class Experiments:
                     dr_eval_out["y1_hat_list"],
                     dr_eval_out["y0_hat_list"],
                     dr_eval_out["y1_true_list"],
-                    dr_eval_out["y0_true_list"])
-            print("drnet_PEHE: ", drnet_PEHE_out)
-            print("drnet_ATE_metric: ", drnet_ATE_metric_out)
+                    dr_eval_out["y0_true_list"],
+                    dr_eval_out["ITE_dict_list"],
+                    "MSE/DR_Results_Out.csv")
+            print("drnet_PEHE_out: ", drnet_PEHE_out)
+            print("drnet_ATE_metric_out: ", drnet_ATE_metric_out)
 
             dr_eval_in = drnet_manager.test_DR_NET({"tensor_dataset": tensor_train}, device)
             print("---" * 20)
@@ -123,9 +126,11 @@ class Experiments:
                     dr_eval_in["y1_hat_list"],
                     dr_eval_in["y0_hat_list"],
                     dr_eval_in["y1_true_list"],
-                    dr_eval_in["y0_true_list"])
-            print("drnet_PEHE: ", drnet_PEHE_in)
-            print("drnet_ATE_metric: ", drnet_ATE_metric_in)
+                    dr_eval_in["y0_true_list"],
+                    dr_eval_in["ITE_dict_list"],
+                    "MSE/DR_Results_In.csv")
+            print("drnet_PEHE_in: ", drnet_PEHE_in)
+            print("drnet_ATE_metric_in: ", drnet_ATE_metric_in)
 
             print("---" * 20)
 
@@ -144,7 +149,43 @@ class Experiments:
                                 drnet_ATE_metric_out,
                                 drnet_PEHE_in,
                                 drnet_ATE_metric_in))
+
             results_list.append(result_dict)
+
+            ################################################################
+
+            print("Wo DR>>>>>>>>>>>>>>")
+            drnet_manager_wo_DR_Net = DRNet_Manager_wo_DR_Net(input_nodes=Constants.DRNET_INPUT_NODES,
+                                                              shared_nodes=Constants.DRNET_SHARED_NODES,
+                                                              outcome_nodes=Constants.DRNET_OUTPUT_NODES,
+                                                              device=device)
+            drnet_manager_wo_DR_Net.train_DR_NET(_dr_train_parameters, device)
+            dr_eval_out_wo_DR_Net = drnet_manager_wo_DR_Net.test_DR_NET({"tensor_dataset": tensor_test}, device)
+            print("---" * 20)
+            print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
+            drnet_PEHE_out, drnet_ATE_metric_out = \
+                self.__process_evaluated_metric(
+                    dr_eval_out_wo_DR_Net["y1_hat_list"],
+                    dr_eval_out_wo_DR_Net["y0_hat_list"],
+                    dr_eval_out_wo_DR_Net["y1_true_list"],
+                    dr_eval_out_wo_DR_Net["y0_true_list"],
+                    dr_eval_out_wo_DR_Net["ITE_dict_list"],
+                    "MSE/DR_Results_WO_DR_Out.csv")
+            print("Wo DR drnet_PEHE_out: ", drnet_PEHE_out)
+            print("Wo DR drnet_ATE_metric_out: ", drnet_ATE_metric_out)
+
+            dr_eval_in_DR_Net = drnet_manager_wo_DR_Net.test_DR_NET({"tensor_dataset": tensor_train}, device)
+            print("---" * 20)
+            drnet_PEHE_in, drnet_ATE_metric_in = \
+                self.__process_evaluated_metric(
+                    dr_eval_in_DR_Net["y1_hat_list"],
+                    dr_eval_in_DR_Net["y0_hat_list"],
+                    dr_eval_in_DR_Net["y1_true_list"],
+                    dr_eval_in_DR_Net["y0_true_list"],
+                    dr_eval_in_DR_Net["ITE_dict_list"],
+                    "MSE/DR_Results_WO_DR_In.csv")
+            print("Wo DR drnet_PEHE_in: ", drnet_PEHE_in)
+            print("Wo DR drnet_ATE_metric_in: ", drnet_ATE_metric_in)
 
         PEHE_set_drnet_out = []
         ATE_Metric_set_drnet_out = []
@@ -270,7 +311,7 @@ class Experiments:
             return self.dL.load_train_test_ihdp_shalit(train_path, test_path, iter_id)
 
     @staticmethod
-    def __process_evaluated_metric(y1_hat, y0_hat, y1_true, y0_true):
+    def __process_evaluated_metric(y1_hat, y0_hat, y1_true, y0_true, ite_dict, ite_path):
         y1_true_np = np.array(y1_true)
         y0_true_np = np.array(y0_true)
         y1_hat_np = np.array(y1_hat)
@@ -280,6 +321,8 @@ class Experiments:
         ATE = Metrics.ATE(y1_true_np, y0_true_np, y1_hat_np, y0_hat_np)
         print("PEHE: {0}".format(PEHE))
         print("ATE: {0}".format(ATE))
+
+        Utils.write_to_csv(ite_path, ite_dict)
 
         # Utils.write_to_csv(ite_csv_path.format(iter_id), ite_dict)
         return PEHE, ATE

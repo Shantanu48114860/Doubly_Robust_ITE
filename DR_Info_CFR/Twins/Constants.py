@@ -1,6 +1,6 @@
 class Constants:
     # DR_Net
-    DRNET_EPOCHS = 100
+    DRNET_EPOCHS = 125
     DRNET_SS_EPOCHS = 1
     DRNET_LR = 1e-4
     DRNET_LAMBDA = 0.0001

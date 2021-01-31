@@ -1,6 +1,6 @@
 class Constants:
     # DR_Net
-    DRNET_EPOCHS = 50
+    DRNET_EPOCHS = 100
     DRNET_SS_EPOCHS = 1
     DRNET_LR = 1e-3
     DRNET_LAMBDA = 0.001
@@ -12,7 +12,7 @@ class Constants:
     BETA = 1
 
     # Adversarial VAE Info GAN
-    Adversarial_epochs = 1000
+    Adversarial_epochs = 200
     Adversarial_VAE_LR = 1e-3
     INFO_GAN_G_LR = 1e-4
     INFO_GAN_D_LR = 1e-4

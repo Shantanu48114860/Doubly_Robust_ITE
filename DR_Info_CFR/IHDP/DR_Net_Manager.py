@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -133,8 +135,6 @@ class DRNet_Manager:
         self.dr_net_phi.eval()
         self.dr_net_h_y0.eval()
         self.dr_net_h_y1.eval()
-        self.pi_net.eval()
-        self.mu_net.eval()
 
         _data_loader = torch.utils.data.DataLoader(eval_set,
                                                    shuffle=False)
@@ -144,11 +144,17 @@ class DRNet_Manager:
         y1_true_list = []
         y0_true_list = []
 
+        ITE_dict_list = []
+
         for batch in _data_loader:
             covariates_X, T, yf, ycf = batch
             covariates_X = covariates_X.to(device)
             y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
             y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+
+            T_float = T.float()
+
+            y_f_hat = y1_hat * T_float + y0_hat * (1 - T_float)
 
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())
@@ -159,9 +165,41 @@ class DRNet_Manager:
             y1_true_list.append(y1_true.item())
             y0_true_list.append(y0_true.item())
 
+            predicted_ITE = y1_hat - y0_hat
+            true_ITE = y1_true - y0_true
+            if torch.cuda.is_available():
+                diff_ite = abs(true_ITE.float().cuda() - predicted_ITE.float().cuda())
+                diff_yf = abs(yf.float().cuda() - y_f_hat.float().cuda())
+            else:
+                diff_ite = abs(true_ITE.float() - predicted_ITE.float())
+                diff_yf = abs(yf.float() - y_f_hat.float())
+
+            ITE_dict_list.append(self.create_ITE_Dict(T.item(),
+                                                      true_ITE.item(),
+                                                      predicted_ITE.item(),
+                                                      diff_ite.item(),
+                                                      yf.item(),
+                                                      y_f_hat.item(),
+                                                      diff_yf.item()))
+
         return {
             "y1_hat_list": np.array(y1_hat_list),
             "y0_hat_list": np.array(y0_hat_list),
             "y1_true_list": np.array(y1_true_list),
-            "y0_true_list": np.array(y0_true_list)
+            "y0_true_list": np.array(y0_true_list),
+            "ITE_dict_list": ITE_dict_list
         }
+
+    @staticmethod
+    def create_ITE_Dict(T, true_ite, predicted_ite, diff_ite, yf_true, yf_hat, diff_yf):
+        result_dict = OrderedDict()
+
+        result_dict["Treatment"] = T
+        result_dict["true_ite"] = true_ite
+        result_dict["predicted_ite"] = predicted_ite
+        result_dict["diff_ite"] = diff_ite
+        result_dict["yf_true"] = yf_true
+        result_dict["yf_hat"] = yf_hat
+        result_dict["diff_yf"] = diff_yf
+
+        return result_dict
