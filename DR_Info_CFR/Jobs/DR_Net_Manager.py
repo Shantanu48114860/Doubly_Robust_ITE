@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -140,8 +142,6 @@ class DRNet_Manager:
         self.dr_net_phi.eval()
         self.dr_net_h_y0.eval()
         self.dr_net_h_y1.eval()
-        self.pi_net.eval()
-        self.mu_net.eval()
 
         _data_loader = torch.utils.data.DataLoader(eval_set,
                                                    shuffle=False)
@@ -151,6 +151,7 @@ class DRNet_Manager:
         y0_hat_list = []
         e_list = []
         T_list = []
+        ITE_dict_list = []
 
         for batch in _data_loader:
             covariates_X, T, e, y_f = batch
@@ -161,14 +162,39 @@ class DRNet_Manager:
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())
 
+            T_float = T.float()
+            y_f_hat = y1_hat * T_float + y0_hat * (1 - T_float)
+
             y_f_true_list.append(y_f.item())
             e_list.append(e.item())
             T_list.append(T.item())
+
+            if torch.cuda.is_available():
+                diff_yf = abs(y_f.float().cuda() - y_f_hat.float().cuda())
+            else:
+                diff_yf = abs(y_f.float() - y_f_hat.float())
+
+            ITE_dict_list.append(self.create_ITE_Dict(T.item(),
+                                                      y_f.item(),
+                                                      y_f_hat.item(),
+                                                      diff_yf.item()))
 
         return {
             "y1_hat_list": y1_hat_list,
             "y0_hat_list": y0_hat_list,
             "yf_list": y_f_true_list,
             "e_list": e_list,
-            "T_list": T_list
+            "T_list": T_list,
+            "ITE_dict_list": ITE_dict_list
         }
+
+    @staticmethod
+    def create_ITE_Dict(T, yf_true, yf_hat, diff_yf):
+        result_dict = OrderedDict()
+
+        result_dict["Treatment"] = T
+        result_dict["yf_true"] = yf_true
+        result_dict["yf_hat"] = yf_hat
+        result_dict["diff_yf"] = diff_yf
+
+        return result_dict

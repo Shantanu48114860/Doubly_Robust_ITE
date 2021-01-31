@@ -5,6 +5,7 @@ import numpy as np
 
 from Adversarial_Manager import Adversarial_Manager
 from Constants import Constants
+from DR_NET_Manager_woDR import DRNet_Manager_wo_DR_Net
 from DR_Net_Manager import DRNet_Manager
 from Utils import Utils
 from dataloader import DataLoader
@@ -120,11 +121,49 @@ class Experiments:
                                                    Utils.convert_to_col_vector(np.array(dr_eval_in["y1_hat_list"])),
                                                    Utils.convert_to_col_vector(np.array(dr_eval_in["y0_hat_list"])))
 
-            print("--------")
+            print("---- with DR  ----")
             print("RPol_out: ", RPol_out)
             print("ATT_out: ", ATT_out)
             print("RPol_in: ", RPol_in)
             print("ATT_in: ", ATT_in)
+
+            print("---" * 20)
+            drnet_manager_wo_DR = DRNet_Manager_wo_DR_Net(input_nodes=Constants.DRNET_INPUT_NODES,
+                                                          shared_nodes=Constants.DRNET_SHARED_NODES,
+                                                          outcome_nodes=Constants.DRNET_OUTPUT_NODES,
+                                                          device=device)
+            drnet_manager_wo_DR.train_DR_NET(_dr_train_parameters, device)
+            dr_eval_out_wo_DR = drnet_manager_wo_DR.test_DR_NET({"tensor_dataset": tensor_test}, device)
+            dr_eval_in_wo_DR = drnet_manager_wo_DR.test_DR_NET({"tensor_dataset": tensor_train}, device)
+            print("---" * 20)
+            print("--> Model : W/o DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
+
+            [RPol_out_wo_DR, ATT_out_wo_DR] = self.Perf_RPol_ATT(Utils.convert_to_col_vector(np.array(dr_eval_out_wo_DR["T_list"])),
+                                                     Utils.convert_to_col_vector(
+                                                         np.array(dr_eval_out_wo_DR["yf_list"])),
+                                                     Utils.convert_to_col_vector(
+                                                         np.array(dr_eval_out_wo_DR["y1_hat_list"])),
+                                                     Utils.convert_to_col_vector(
+                                                         np.array(dr_eval_out_wo_DR["y0_hat_list"])))
+
+            [RPol_in_wo_DR, ATT_in_wo_DR] = self.Perf_RPol_ATT(Utils.convert_to_col_vector(np.array(dr_eval_in_wo_DR["T_list"])),
+                                                   Utils.convert_to_col_vector(np.array(dr_eval_in_wo_DR["yf_list"])),
+                                                   Utils.convert_to_col_vector(
+                                                       np.array(dr_eval_in_wo_DR["y1_hat_list"])),
+                                                   Utils.convert_to_col_vector(
+                                                       np.array(dr_eval_in_wo_DR["y0_hat_list"])))
+
+            print("---- without DR  ----")
+            print("RPol_out: ", RPol_out_wo_DR)
+            print("ATT_out: ", ATT_out_wo_DR)
+            print("RPol_in: ", RPol_in_wo_DR)
+            print("ATT_in: ", ATT_in_wo_DR)
+
+            Utils.write_to_csv("MSE/DR_Results_Out.csv", dr_eval_out["ITE_dict_list"])
+            Utils.write_to_csv("MSE/DR_Results_In.csv", dr_eval_in["ITE_dict_list"])
+
+            Utils.write_to_csv("MSE/DR_Results_WO_DR_Out.csv", dr_eval_out_wo_DR["ITE_dict_list"])
+            Utils.write_to_csv("MSE/DR_Results_WO_DR_In.csv", dr_eval_in_wo_DR["ITE_dict_list"])
 
             print("---" * 20)
 
@@ -310,7 +349,6 @@ class Experiments:
         # Final ATT
         ATT = np.abs(ATT_value - ATT_estimate)
         return [RPol, ATT]
-
 
     # def get_consolidated_file_name(self, ps_model_type):
     #     if ps_model_type == Constants.PS_MODEL_NN:

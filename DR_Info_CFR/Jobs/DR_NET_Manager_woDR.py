@@ -43,9 +43,6 @@ class DRNet_Manager_wo_DR_Net:
 
         loss_F_MSE = nn.BCELoss()
         loss_CF_MSE = nn.BCELoss()
-        loss_DR_F_MSE = nn.BCELoss()
-        loss_DR_CF_MSE = nn.BCELoss()
-        lossBCE = nn.BCELoss()
 
         for epoch in range(epochs):
             epoch += 1
@@ -89,6 +86,10 @@ class DRNet_Manager_wo_DR_Net:
                                             y_f.float()).to(device)
                         loss_CF = loss_CF_MSE(y_cf_hat.float(),
                                               y_cf.float()).to(device)
+
+                    loss = loss_F + loss_CF
+                    loss.backward()
+                    total_loss_train += loss_F.item() + loss_CF.item()
 
                     optimizer_W.step()
                     optimizer_V1.step()
