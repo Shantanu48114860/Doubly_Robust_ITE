@@ -17,7 +17,15 @@ class Utils:
         return np_arr.reshape(np_arr.shape[0], 1)
 
     @staticmethod
-    def test_train_split(np_train_X, np_train_T, np_train_yf, np_train_ycf, split_size=0.8):
+    def test_train_split(np_train_X, np_train_T, np_train_yf, np_train_ycf,
+                         np_mu0, np_mu1, split_size=0.8):
+        return sklearn.train_test_split(np_train_X, np_train_T, np_train_yf, np_train_ycf,
+                                        np_mu0, np_mu1,
+                                        train_size=split_size)
+
+    @staticmethod
+    def test_train_split_custom(np_train_X, np_train_T, np_train_yf, np_train_ycf, iter_id,
+                                split_size=0.8):
         return sklearn.train_test_split(np_train_X, np_train_T, np_train_yf, np_train_ycf,
                                         train_size=split_size)
 
@@ -39,16 +47,20 @@ class Utils:
         return processed_dataset
 
     @staticmethod
-    def convert_to_tensor(X, T, Y_f, Y_cf):
+    def convert_to_tensor(X, T, Y_f, Y_cf, np_train_mu0, np_train_mu1):
         tensor_x = torch.stack([torch.Tensor(i) for i in X])
         tensor_T = torch.from_numpy(T)
         tensor_y_f = torch.from_numpy(Y_f)
         tensor_y_cf = torch.from_numpy(Y_cf)
+        tensor_mu0 = torch.from_numpy(np_train_mu0)
+        tensor_mu1 = torch.from_numpy(np_train_mu1)
 
         processed_dataset = torch.utils.data.TensorDataset(tensor_x,
                                                            tensor_T,
                                                            tensor_y_f,
-                                                           tensor_y_cf)
+                                                           tensor_y_cf,
+                                                           tensor_mu0,
+                                                           tensor_mu1)
         return processed_dataset
 
     @staticmethod
@@ -108,6 +120,20 @@ class Utils:
     @staticmethod
     def vae_loss(mu, log_var):
         return -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+
+    @staticmethod
+    def kl_divergence(mu1, mu2, sigma_1, sigma_2):
+        sigma_diag_1 = np.eye(sigma_1.shape[0]) * sigma_1
+        sigma_diag_2 = np.eye(sigma_2.shape[0]) * sigma_2
+
+        sigma_diag_2_inv = np.linalg.inv(sigma_diag_2)
+
+        kl = 0.5 * (np.log(np.linalg.det(sigma_diag_2) / np.linalg.det(sigma_diag_2))
+                    - mu1.shape[0] + np.trace(np.matmul(sigma_diag_2_inv, sigma_diag_1))
+                    + np.matmul(np.matmul(np.transpose(mu2 - mu1), sigma_diag_2_inv), (mu2 - mu1))
+                    )
+
+        return kl
 
 
 class NormalNLLLoss:

@@ -111,12 +111,13 @@ class DRNet_Manager_wo_DR_Net:
         for batch in _data_loader:
             covariates_X, T, yf, ycf = batch
             covariates_X = covariates_X.to(device)
-            y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
-            y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+            y1_hat = torch.round(self.dr_net_h_y1(self.dr_net_phi(covariates_X)))
+            y0_hat = torch.round(self.dr_net_h_y0(self.dr_net_phi(covariates_X)))
 
             T_float = T.float()
 
             y_f_hat = y1_hat * T_float + y0_hat * (1 - T_float)
+            y_cf_hat = y1_hat * (1-T_float) + y0_hat * T_float
 
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())
@@ -141,7 +142,9 @@ class DRNet_Manager_wo_DR_Net:
                                                       predicted_ITE.item(),
                                                       diff_ite.item(),
                                                       yf.item(),
+                                                      ycf.item(),
                                                       y_f_hat.item(),
+                                                      y_cf_hat.item(),
                                                       diff_yf.item()))
 
         return {
@@ -153,7 +156,8 @@ class DRNet_Manager_wo_DR_Net:
         }
 
     @staticmethod
-    def create_ITE_Dict(T, true_ite, predicted_ite, diff_ite, yf_true, yf_hat, diff_yf):
+    def create_ITE_Dict(T, true_ite, predicted_ite, diff_ite, yf_true,
+                        ycf_true, yf_hat, y_cf_hat, diff_yf):
         result_dict = OrderedDict()
 
         result_dict["Treatment"] = T
@@ -161,7 +165,9 @@ class DRNet_Manager_wo_DR_Net:
         result_dict["predicted_ite"] = predicted_ite
         result_dict["diff_ite"] = diff_ite
         result_dict["yf_true"] = yf_true
+        result_dict["ycf_true"] = ycf_true
         result_dict["yf_hat"] = yf_hat
+        result_dict["y_cf_hat"] = y_cf_hat
         result_dict["diff_yf"] = diff_yf
 
         return result_dict

@@ -86,7 +86,13 @@ class Adversarial_Manager:
                 # VAE training
                 for batch in train_data_loader:
                     self.adversarial_vae.train()
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, y_f, y_cf, _, _ = batch
+                    # print("----")
+                    # print(covariates_X.size())
+                    # print(T.size())
+                    # print(y_f.size())
+                    # print(y_cf.size())
+                    # print("----")
                     batch_n = covariates_X.size(0)
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
@@ -134,6 +140,10 @@ class Adversarial_Manager:
                     noise_netG_input = torch.cat((latent_z_code, noise_z), dim=1)
 
                     y0, y1 = self.netG(noise_netG_input)
+                    # print("----")
+                    # print(y0.size())
+                    # print(y1.size())
+                    # print("----")
                     y_f_hat = T * y1 + (1 - T) * y0
 
                     y0_sigmoid = torch.sigmoid(y0)
@@ -143,6 +153,10 @@ class Adversarial_Manager:
                     netD_y1 = (T * y_f + (1 - T) * y1_sigmoid).type(torch.FloatTensor)  # if t = 1
 
                     # Discriminator loss and gradients
+                    # print("----")
+                    # print(netD_y0.size())
+                    # print(netD_y1.size())
+                    # print("----")
                     d_logit = self.netD(covariates_X,
                                         netD_y0.to(device),
                                         netD_y1.to(device))
@@ -185,6 +199,11 @@ class Adversarial_Manager:
 
                     total_loss_train += loss_VAE.item() + loss_Discriminator.item() + loss_Generator_total.item()
                     t.set_postfix(epoch='{0}'.format(epoch),
+                                  VAE_loss='{:05.3f}'.format(loss_VAE.item()),
+                                  D_loss='{:05.3f}'.format(loss_Discriminator.item()),
+                                  MI='{:05.3f}'.format(loss_Info.item()),
+                                  loss_G_F='{:05.3f}'.format(loss_Generator_F.item()),
+                                  loss_G='{:05.3f}'.format(loss_Generator_total.item()),
                                   loss_train='{:05.3f}'.format(total_loss_train))
                     t.update()
 
@@ -205,7 +224,7 @@ class Adversarial_Manager:
 
         ycf_list = []
         for batch in _data_loader:
-            covariates_X, T, y_f, _ = batch
+            covariates_X, T, y_f, _, _, _= batch
             batch_n = covariates_X.size(0)
             covariates_X = covariates_X.to(device)
             # vae test

@@ -67,7 +67,7 @@ class DRNet_Manager:
                 self.pi_net.train()
                 self.mu_net.train()
                 for batch in train_data_loader:
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, y_f, y_cf, _, _ = batch
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
 
@@ -116,16 +116,39 @@ class DRNet_Manager:
                         loss_DR_CF = loss_DR_CF_MSE(y_cf_dr.float(),
                                                     y_cf.float()).to(device)
 
-                    loss = loss_F + loss_CF + ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
-                    loss.backward()
-                    total_loss_train += loss_F.item() + loss_CF.item() + loss_DR_F.item() + \
-                                        loss_DR_CF.item() + loss_pi.item()
+                    # loss = loss_F + loss_CF + ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
+
+                    loss_Y = loss_F + loss_CF
+                    loss_Y.backward(retain_graph=True)
+
+                    for param in self.dr_net_phi.parameters():
+                        param.requires_grad = False
+
+                    for param in self.dr_net_h_y0.parameters():
+                        param.requires_grad = False
+
+                    for param in self.dr_net_h_y1.parameters():
+                        param.requires_grad = False
+
+                    loss_DR = ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
+                    loss_DR.backward()
+
+                    total_loss_train += loss_Y.item() + loss_DR.item()
 
                     optimizer_pi.step()
                     optimizer_mu.step()
                     optimizer_W.step()
                     optimizer_V1.step()
                     optimizer_V0.step()
+
+                    for param in self.dr_net_phi.parameters():
+                        param.requires_grad = True
+
+                    for param in self.dr_net_h_y0.parameters():
+                        param.requires_grad = True
+
+                    for param in self.dr_net_h_y1.parameters():
+                        param.requires_grad = True
 
                     t.set_postfix(epoch='{0}'.format(epoch), loss='{:05.3f}'.format(total_loss_train))
                     t.update()
@@ -147,14 +170,15 @@ class DRNet_Manager:
         ITE_dict_list = []
 
         for batch in _data_loader:
-            covariates_X, T, yf, ycf = batch
+            covariates_X, T, yf, ycf, mu0, mu1 = batch
             covariates_X = covariates_X.to(device)
-            y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
-            y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
+            y1_hat = torch.round(self.dr_net_h_y1(self.dr_net_phi(covariates_X)))
+            y0_hat = torch.round(self.dr_net_h_y0(self.dr_net_phi(covariates_X)))
 
             T_float = T.float()
 
             y_f_hat = y1_hat * T_float + y0_hat * (1 - T_float)
+            y_cf_hat = y1_hat * (1 - T_float) + y0_hat * T_float
 
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())
@@ -162,11 +186,11 @@ class DRNet_Manager:
             y1_true = T * yf + (1 - T) * ycf
             y0_true = (1 - T) * yf + T * ycf
 
-            y1_true_list.append(y1_true.item())
-            y0_true_list.append(y0_true.item())
+            y1_true_list.append(mu1.item())
+            y0_true_list.append(mu0.item())
 
             predicted_ITE = y1_hat - y0_hat
-            true_ITE = y1_true - y0_true
+            true_ITE = mu1 - mu0
             if torch.cuda.is_available():
                 diff_ite = abs(true_ITE.float().cuda() - predicted_ITE.float().cuda())
                 diff_yf = abs(yf.float().cuda() - y_f_hat.float().cuda())
@@ -179,7 +203,9 @@ class DRNet_Manager:
                                                       predicted_ITE.item(),
                                                       diff_ite.item(),
                                                       yf.item(),
+                                                      ycf.item(),
                                                       y_f_hat.item(),
+                                                      y_cf_hat.item(),
                                                       diff_yf.item()))
 
         return {
@@ -191,7 +217,8 @@ class DRNet_Manager:
         }
 
     @staticmethod
-    def create_ITE_Dict(T, true_ite, predicted_ite, diff_ite, yf_true, yf_hat, diff_yf):
+    def create_ITE_Dict(T, true_ite, predicted_ite, diff_ite, yf_true,
+                        ycf_true, yf_hat, y_cf_hat, diff_yf):
         result_dict = OrderedDict()
 
         result_dict["Treatment"] = T
@@ -199,7 +226,9 @@ class DRNet_Manager:
         result_dict["predicted_ite"] = predicted_ite
         result_dict["diff_ite"] = diff_ite
         result_dict["yf_true"] = yf_true
+        result_dict["ycf_true"] = ycf_true
         result_dict["yf_hat"] = yf_hat
+        result_dict["y_cf_hat"] = y_cf_hat
         result_dict["diff_yf"] = diff_yf
 
         return result_dict

@@ -53,7 +53,7 @@ class DRNet_Manager_wo_DR_Net:
                 self.dr_net_h_y0.train()
                 self.dr_net_h_y1.train()
                 for batch in train_data_loader:
-                    covariates_X, T, y_f, y_cf = batch
+                    covariates_X, T, y_f, y_cf, _, _ = batch
                     covariates_X = covariates_X.to(device)
                     T = T.to(device)
 
@@ -109,7 +109,7 @@ class DRNet_Manager_wo_DR_Net:
         ITE_dict_list = []
 
         for batch in _data_loader:
-            covariates_X, T, yf, ycf = batch
+            covariates_X, T, yf, ycf, mu0, mu1 = batch
             covariates_X = covariates_X.to(device)
             y1_hat = self.dr_net_h_y1(self.dr_net_phi(covariates_X))
             y0_hat = self.dr_net_h_y0(self.dr_net_phi(covariates_X))
@@ -124,11 +124,11 @@ class DRNet_Manager_wo_DR_Net:
             y1_true = T * yf + (1 - T) * ycf
             y0_true = (1 - T) * yf + T * ycf
 
-            y1_true_list.append(y1_true.item())
-            y0_true_list.append(y0_true.item())
+            y1_true_list.append(mu1.item())
+            y0_true_list.append(mu0.item())
 
             predicted_ITE = y1_hat - y0_hat
-            true_ITE = y1_true - y0_true
+            true_ITE = mu1 - mu0
             if torch.cuda.is_available():
                 diff_ite = abs(true_ITE.float().cuda() - predicted_ITE.float().cuda())
                 diff_yf = abs(yf.float().cuda() - y_f_hat.float().cuda())

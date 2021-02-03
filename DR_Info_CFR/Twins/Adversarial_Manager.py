@@ -41,9 +41,6 @@ class Adversarial_Manager:
                               shared_nodes=Q_shared_nodes,
                               out_nodes=Q_out_nodes).to(device)
 
-        self.netQ1 = QHead_y1(in_nodes=Q_in_nodes,
-                              shared_nodes=Q_shared_nodes,
-                              out_nodes=Q_out_nodes).to(device)
 
     def train_adversarial_model(self, train_parameters, device):
         epochs = train_parameters["epochs"]
@@ -70,8 +67,7 @@ class Adversarial_Manager:
         G_optimizer = optim.Adam(
             [
                 {'params': self.netG.parameters()},
-                {'params': self.netQ0.parameters()},
-                {'params': self.netQ1.parameters()}
+                {'params': self.netQ0.parameters()}
             ],
             lr=gan_D_lr,
             betas=(0.5, 0.999))
@@ -126,7 +122,6 @@ class Adversarial_Manager:
                     self.netG.train()
                     self.netD.train()
                     self.netQ0.train()
-                    self.netQ1.train()
                     latent_z_code = latent_z_code.detach()
                     # sample from uniform(-1, 1)
                     noise_z_size = (Constants.Info_GAN_Gen_in_nodes - Constants.Decoder_in_nodes)
@@ -167,15 +162,13 @@ class Adversarial_Manager:
                                         netD_y0.to(device),
                                         netD_y1.to(device))
                     # Q training
-                    # q_input = torch.cat((y0, y1), dim=1)
-                    q_mu0, q_var0 = self.netQ0(y0)
-                    q_mu1, q_var1 = self.netQ1(y1)
+                    q_input = torch.cat((y0, y1), dim=1)
+                    q_mu0, q_var0 = self.netQ0(q_input)
                     con_loss0 = loss_Q_con(latent_z_code, q_mu0, q_var0) * 0.1
-                    con_loss1 = loss_Q_con(latent_z_code, q_mu1, q_var1) * 0.1
 
                     # Generator and Q losses and gradients
                     loss_Generator = -loss_D(d_logit, T_float).to(device)
-                    loss_Info = INFO_GAN_LAMBDA * (con_loss0 + con_loss1)
+                    loss_Info = INFO_GAN_LAMBDA * (con_loss0)
                     loss_Generator_total = loss_Generator + INFO_GAN_ALPHA * loss_Generator_F + loss_Info
 
                     G_optimizer.zero_grad()
@@ -199,7 +192,6 @@ class Adversarial_Manager:
         torch.save(self.netG.state_dict(), "Models/Backup/netG.pth")
         torch.save(self.netD.state_dict(), "Models/Backup/netD.pth")
         torch.save(self.netQ0.state_dict(), "Models/Backup/netQ0.pth")
-        torch.save(self.netQ1.state_dict(), "Models/Backup/netQ1.pth")
 
     def test_adversarial_model(self, train_parameters, device):
         eval_set = train_parameters["tensor_dataset"]
@@ -210,7 +202,6 @@ class Adversarial_Manager:
         self.netG.eval()
         self.netD.eval()
         self.netQ0.eval()
-        self.netQ1.eval()
 
         ycf_list = []
         for batch in _data_loader:

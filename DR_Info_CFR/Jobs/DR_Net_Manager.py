@@ -123,16 +123,47 @@ class DRNet_Manager:
                         loss_DR_CF = loss_DR_CF_MSE(y_cf_dr.float(),
                                                     y_cf.float()).to(device)
 
-                    loss = loss_F + loss_CF + ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
-                    loss.backward()
-                    total_loss_train += loss_F.item() + loss_CF.item() + loss_DR_F.item() + \
-                                        loss_DR_CF.item() + loss_pi.item()
+                    # loss = loss_F + loss_CF + ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
+                    # loss.backward()
+                    # total_loss_train += loss_F.item() + loss_CF.item() + loss_DR_F.item() + \
+                    #                     loss_DR_CF.item() + loss_pi.item()
+
+                    loss_Y = loss_F + loss_CF
+                    loss_Y.backward(retain_graph=True)
+
+                    for param in self.dr_net_phi.parameters():
+                        param.requires_grad = False
+
+                    for param in self.dr_net_h_y0.parameters():
+                        param.requires_grad = False
+
+                    for param in self.dr_net_h_y1.parameters():
+                        param.requires_grad = False
+
+                    loss_DR = ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
+                    loss_DR.backward()
+
+                    total_loss_train += loss_Y.item() + loss_DR.item()
+
+                    # loss = loss_F + loss_CF + ALPHA * loss_pi + BETA * (loss_DR_F + loss_DR_CF)
+                    # loss.backward()
+                    # total_loss_train += loss_F.item() + loss_CF.item() + loss_DR_F.item() + \
+                    #                     loss_DR_CF.item() + loss_pi.item()
 
                     optimizer_pi.step()
                     optimizer_mu.step()
                     optimizer_W.step()
                     optimizer_V1.step()
                     optimizer_V0.step()
+
+                    for param in self.dr_net_phi.parameters():
+                        param.requires_grad = True
+
+                    for param in self.dr_net_h_y0.parameters():
+                        param.requires_grad = True
+
+                    for param in self.dr_net_h_y1.parameters():
+                        param.requires_grad = True
 
                     t.set_postfix(epoch='{0}'.format(epoch), loss='{:05.3f}'.format(total_loss_train))
                     t.update()

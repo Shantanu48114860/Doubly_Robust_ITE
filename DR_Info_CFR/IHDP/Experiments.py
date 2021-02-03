@@ -35,17 +35,22 @@ class Experiments:
             print("iter_id: {0}".format(iter_id))
             print("--" * 20)
             input_nodes = run_parameters["input_nodes"]
-            # np_train_X, np_train_T, np_train_yf, np_train_ycf, \
-            # np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
+            # np_train_X, np_train_T, np_train_yf, np_train_ycf, np_train_mu0, np_train_mu1, \
+            # np_test_X, np_test_T, np_test_yf, np_test_ycf, np_test_mu0, np_test_mu1, n_treated, n_total = \
             #     self.dL.load_train_test_ihdp_shalit(train_path,
             #                                         test_path,
             #                                         iter_id)
-
             np_train_X, np_train_T, np_train_yf, np_train_ycf, \
-            np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
+            np_test_X, np_test_T, np_test_yf, np_test_ycf, \
+            np_train_mu0, np_test_mu0, np_train_mu1, np_test_mu1, n_treated, n_total = \
                 self.dL.load_train_test_ihdp_random(csv_path,
-                                                    split_size)
-            tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
+                                                    0.8)
+
+            # np_train_X, np_train_T, np_train_yf, np_train_ycf, \
+            # np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
+            #     self.dL.load_custom(iter_id=iter_id)
+            tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T,
+                                                   np_train_yf, np_train_ycf, np_train_mu0, np_train_mu1)
 
             adv_manager = Adversarial_Manager(encoder_input_nodes=Constants.DRNET_INPUT_NODES,
                                               encoder_shared_nodes=Constants.Encoder_shared_nodes,
@@ -85,8 +90,10 @@ class Experiments:
             np_y_cf = adv_manager.test_adversarial_model({"tensor_dataset": tensor_train}, device)
             print("Adversarial Model Training ended....")
 
-            tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf)
-            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf)
+            tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_y_cf,
+                                                      np_train_mu0, np_train_mu1)
+            tensor_test = Utils.convert_to_tensor(np_test_X, np_test_T, np_test_yf, np_test_ycf,
+                                                  np_test_mu0, np_test_mu1)
             # tensor_train_dr = Utils.convert_to_tensor(np_train_X, np_train_T, np_train_yf, np_train_ycf)
 
             _dr_train_parameters = {
@@ -134,24 +141,6 @@ class Experiments:
 
             print("---" * 20)
 
-            result_dict = OrderedDict()
-            result_dict["iter_id"] = iter_id
-
-            result_dict["drnet_PEHE_out"] = drnet_PEHE_out
-            result_dict["drnet_ATE_metric_out"] = drnet_ATE_metric_out
-            result_dict["drnet_PEHE_in"] = drnet_PEHE_in
-            result_dict["drnet_ATE_metric_in"] = drnet_ATE_metric_in
-
-            file1.write("\nToday's date: {0}\n".format(date.today()))
-            file1.write("Iter: {0}, PEHE_DR_NET_out: {1}, ATE_DR_NET_out: {2}, "
-                        "PEHE_DR_NET_in: {3}, ATE_DR_NET_in: {4}, \n"
-                        .format(iter_id, drnet_PEHE_out,
-                                drnet_ATE_metric_out,
-                                drnet_PEHE_in,
-                                drnet_ATE_metric_in))
-
-            results_list.append(result_dict)
-
             ################################################################
 
             print("Wo DR>>>>>>>>>>>>>>")
@@ -162,8 +151,8 @@ class Experiments:
             drnet_manager_wo_DR_Net.train_DR_NET(_dr_train_parameters, device)
             dr_eval_out_wo_DR_Net = drnet_manager_wo_DR_Net.test_DR_NET({"tensor_dataset": tensor_test}, device)
             print("---" * 20)
-            print("--> Model : DRNet Supervised Training Evaluation, Iter_id: {0}".format(iter_id))
-            drnet_PEHE_out, drnet_ATE_metric_out = \
+            print("--> Model : DRNet Supervised Training Evaluation_wo_DR, Iter_id: {0}".format(iter_id))
+            drnet_PEHE_out_wo_DR, drnet_ATE_metric_out_wo_DR = \
                 self.__process_evaluated_metric(
                     dr_eval_out_wo_DR_Net["y1_hat_list"],
                     dr_eval_out_wo_DR_Net["y0_hat_list"],
@@ -171,12 +160,12 @@ class Experiments:
                     dr_eval_out_wo_DR_Net["y0_true_list"],
                     dr_eval_out_wo_DR_Net["ITE_dict_list"],
                     "MSE/DR_Results_WO_DR_Out.csv")
-            print("Wo DR drnet_PEHE_out: ", drnet_PEHE_out)
-            print("Wo DR drnet_ATE_metric_out: ", drnet_ATE_metric_out)
+            print("Wo DR drnet_PEHE_out_wo_DR: ", drnet_PEHE_out_wo_DR)
+            print("Wo DR drnet_ATE_metric_out_wo_DR: ", drnet_ATE_metric_out_wo_DR)
 
             dr_eval_in_DR_Net = drnet_manager_wo_DR_Net.test_DR_NET({"tensor_dataset": tensor_train}, device)
             print("---" * 20)
-            drnet_PEHE_in, drnet_ATE_metric_in = \
+            drnet_PEHE_in_wo_DR, drnet_ATE_metric_in_wo_DR = \
                 self.__process_evaluated_metric(
                     dr_eval_in_DR_Net["y1_hat_list"],
                     dr_eval_in_DR_Net["y0_hat_list"],
@@ -184,19 +173,59 @@ class Experiments:
                     dr_eval_in_DR_Net["y0_true_list"],
                     dr_eval_in_DR_Net["ITE_dict_list"],
                     "MSE/DR_Results_WO_DR_In.csv")
-            print("Wo DR drnet_PEHE_in: ", drnet_PEHE_in)
-            print("Wo DR drnet_ATE_metric_in: ", drnet_ATE_metric_in)
+            print("Wo DR drnet_PEHE_in_wo_DR: ", drnet_PEHE_in_wo_DR)
+            print("Wo DR drnet_ATE_metric_in_wo_DR: ", drnet_ATE_metric_in_wo_DR)
+
+            result_dict = OrderedDict()
+            result_dict["iter_id"] = iter_id
+
+            result_dict["drnet_PEHE_out"] = drnet_PEHE_out
+            result_dict["drnet_ATE_metric_out"] = drnet_ATE_metric_out
+            result_dict["drnet_PEHE_in"] = drnet_PEHE_in
+            result_dict["drnet_ATE_metric_in"] = drnet_ATE_metric_in
+
+            result_dict["drnet_PEHE_out_wo_DR"] = drnet_PEHE_out_wo_DR
+            result_dict["drnet_ATE_metric_out_wo_DR"] = drnet_ATE_metric_out_wo_DR
+            result_dict["drnet_PEHE_in_wo_DR"] = drnet_PEHE_in_wo_DR
+            result_dict["drnet_ATE_metric_in_wo_DR"] = drnet_ATE_metric_in_wo_DR
+
+            file1.write("\nToday's date: {0}\n".format(date.today()))
+            file1.write("Iter: {0}, PEHE_DR_NET_out: {1}, ATE_DR_NET_out: {2}, "
+                        "PEHE_DR_NET_in: {3}, ATE_DR_NET_in: {4}, "
+                        "PEHE_DR_NET_out_wo_DR: {4}, ATE_DR_NET_out_wo_DR: {5}, "
+                        "PEHE_DR_NET_in_wo_DR: {6}, ATE_DR_NET_in_wo_DR: {7}, \n"
+                        .format(iter_id,
+                                drnet_PEHE_out,
+                                drnet_ATE_metric_out,
+                                drnet_PEHE_in,
+                                drnet_ATE_metric_in,
+                                drnet_PEHE_out_wo_DR,
+                                drnet_ATE_metric_out_wo_DR,
+                                drnet_PEHE_in_wo_DR,
+                                drnet_ATE_metric_in_wo_DR))
+
+            results_list.append(result_dict)
 
         PEHE_set_drnet_out = []
         ATE_Metric_set_drnet_out = []
         PEHE_set_drnet_in = []
         ATE_Metric_set_drnet_in = []
 
+        PEHE_set_drnet_out_wo_DR = []
+        ATE_Metric_set_drnet_out_wo_DR = []
+        PEHE_set_drnet_in_wo_DR = []
+        ATE_Metric_set_drnet_in_wo_DR = []
+
         for result in results_list:
             PEHE_set_drnet_out.append(result["drnet_PEHE_out"])
             ATE_Metric_set_drnet_out.append(result["drnet_ATE_metric_out"])
             PEHE_set_drnet_in.append(result["drnet_PEHE_in"])
             ATE_Metric_set_drnet_in.append(result["drnet_ATE_metric_in"])
+
+            PEHE_set_drnet_out_wo_DR.append(result["drnet_PEHE_out_wo_DR"])
+            ATE_Metric_set_drnet_out_wo_DR.append(result["drnet_ATE_metric_out_wo_DR"])
+            PEHE_set_drnet_in_wo_DR.append(result["drnet_PEHE_in_wo_DR"])
+            ATE_Metric_set_drnet_in_wo_DR.append(result["drnet_ATE_metric_in_wo_DR"])
 
         PEHE_set_drnet_mean_out = np.mean(np.array(PEHE_set_drnet_out))
         PEHE_set_drnet_std_out = np.std(PEHE_set_drnet_out)
@@ -207,6 +236,16 @@ class Experiments:
         PEHE_set_drnet_std_in = np.std(PEHE_set_drnet_in)
         ATE_Metric_set_drnet_mean_in = np.mean(np.array(ATE_Metric_set_drnet_in))
         ATE_Metric_set_drnet_std_in = np.std(ATE_Metric_set_drnet_in)
+
+        PEHE_set_drnet_mean_out_wo_DR = np.mean(np.array(PEHE_set_drnet_out_wo_DR))
+        PEHE_set_drnet_std_out_wo_DR = np.std(PEHE_set_drnet_out_wo_DR)
+        ATE_Metric_set_drnet_mean_out_wo_DR = np.mean(np.array(ATE_Metric_set_drnet_out_wo_DR))
+        ATE_Metric_set_drnet_std_out_wo_DR = np.std(ATE_Metric_set_drnet_out_wo_DR)
+
+        PEHE_set_drnet_mean_in_wo_DR = np.mean(np.array(PEHE_set_drnet_in_wo_DR))
+        PEHE_set_drnet_std_in_wo_DR = np.std(PEHE_set_drnet_in_wo_DR)
+        ATE_Metric_set_drnet_mean_in_wo_DR = np.mean(np.array(ATE_Metric_set_drnet_in_wo_DR))
+        ATE_Metric_set_drnet_std_in_wo_DR = np.std(ATE_Metric_set_drnet_in_wo_DR)
 
         print("----------------- !!DR_Net Models(Results) !! ------------------------")
         print("--" * 20)
@@ -219,6 +258,20 @@ class Experiments:
               .format(PEHE_set_drnet_mean_in, PEHE_set_drnet_std_in))
         print("DR_NET, ATE Metric_in: {0}, SD: {1}"
               .format(ATE_Metric_set_drnet_mean_in, ATE_Metric_set_drnet_std_in))
+        print("--" * 20)
+
+        print("############################")
+
+        print("--" * 20)
+        print("DR_NET_wo_DR, PEHE_out_wo_DR: {0}, SD: {1}"
+              .format(PEHE_set_drnet_mean_out_wo_DR, PEHE_set_drnet_std_out_wo_DR))
+        print("DR_NET_wo_DR, ATE Metric_out_wo_DR: {0}, SD: {1}"
+              .format(ATE_Metric_set_drnet_mean_out_wo_DR, ATE_Metric_set_drnet_std_out_wo_DR))
+        print("--" * 20)
+        print("DR_NET_wo_DR, PEHE_in_wo_DR: {0}, SD: {1}"
+              .format(PEHE_set_drnet_mean_in_wo_DR, PEHE_set_drnet_std_in_wo_DR))
+        print("DR_NET_wo_DR, ATE Metric_in_wo_DR: {0}, SD: {1}"
+              .format(ATE_Metric_set_drnet_mean_in_wo_DR, ATE_Metric_set_drnet_std_in_wo_DR))
         print("--" * 20)
 
         file1.write("\n#####################")
@@ -235,6 +288,19 @@ class Experiments:
         file1.write("\nDR_NET, ATE Metric_in: {0}, SD: {1}"
                     .format(ATE_Metric_set_drnet_mean_in,
                             ATE_Metric_set_drnet_std_in))
+
+        file1.write("\n---------------------")
+        file1.write("\nDR_NET_wo_DR, PEHE_out_wo_DR: {0}, SD: {1}"
+                    .format(PEHE_set_drnet_mean_out_wo_DR, PEHE_set_drnet_std_out_wo_DR))
+        file1.write("\nDR_NET_wo_DR, ATE Metric_out_wo_DR: {0}, SD: {1}"
+                    .format(ATE_Metric_set_drnet_mean_out_wo_DR,
+                            ATE_Metric_set_drnet_std_out_wo_DR))
+
+        file1.write("\nDR_NET_wo_DR, PEHE_in_wo_DR: {0}, SD: {1}"
+                    .format(PEHE_set_drnet_mean_in_wo_DR, PEHE_set_drnet_std_in_wo_DR))
+        file1.write("\nDR_NET_wo_DR, ATE Metric_in_wo_DR: {0}, SD: {1}"
+                    .format(ATE_Metric_set_drnet_mean_in_wo_DR,
+                            ATE_Metric_set_drnet_std_in_wo_DR))
 
         Utils.write_to_csv(run_parameters["consolidated_file_path"], results_list)
 

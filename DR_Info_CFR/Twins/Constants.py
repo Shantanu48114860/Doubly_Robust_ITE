@@ -1,6 +1,7 @@
 class Constants:
     # DR_Net
-    DRNET_EPOCHS = 125
+    DRNET_EPOCHS = 100
+
     DRNET_SS_EPOCHS = 1
     DRNET_LR = 1e-4
     DRNET_LAMBDA = 0.0001
@@ -12,7 +13,7 @@ class Constants:
     BETA = 1
 
     # Adversarial VAE Info GAN
-    Adversarial_epochs = 1000
+    Adversarial_epochs = 200
     Adversarial_VAE_LR = 1e-3
     INFO_GAN_G_LR = 1e-4
     INFO_GAN_D_LR = 5e-4
@@ -42,6 +43,6 @@ class Constants:
     Info_GAN_Dis_shared_nodes = 30
     Info_GAN_Dis_out_nodes = 1
 
-    Info_GAN_Q_in_nodes = 1
+    Info_GAN_Q_in_nodes = 2
     Info_GAN_Q_shared_nodes = Decoder_in_nodes
     Info_GAN_Q_out_nodes = Decoder_in_nodes
