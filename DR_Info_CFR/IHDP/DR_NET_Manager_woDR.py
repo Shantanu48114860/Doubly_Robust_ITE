@@ -121,9 +121,6 @@ class DRNet_Manager_wo_DR_Net:
             y1_hat_list.append(y1_hat.item())
             y0_hat_list.append(y0_hat.item())
 
-            y1_true = T * yf + (1 - T) * ycf
-            y0_true = (1 - T) * yf + T * ycf
-
             y1_true_list.append(mu1.item())
             y0_true_list.append(mu0.item())
 

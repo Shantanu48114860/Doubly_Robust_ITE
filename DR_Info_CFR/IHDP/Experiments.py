@@ -40,15 +40,17 @@ class Experiments:
             #     self.dL.load_train_test_ihdp_shalit(train_path,
             #                                         test_path,
             #                                         iter_id)
-            np_train_X, np_train_T, np_train_yf, np_train_ycf, \
-            np_test_X, np_test_T, np_test_yf, np_test_ycf, \
-            np_train_mu0, np_test_mu0, np_train_mu1, np_test_mu1, n_treated, n_total = \
-                self.dL.load_train_test_ihdp_random(csv_path,
-                                                    0.8)
 
             # np_train_X, np_train_T, np_train_yf, np_train_ycf, \
-            # np_test_X, np_test_T, np_test_yf, np_test_ycf, n_treated, n_total = \
-            #     self.dL.load_custom(iter_id=iter_id)
+            # np_test_X, np_test_T, np_test_yf, np_test_ycf, \
+            # np_train_mu0, np_test_mu0, np_train_mu1, np_test_mu1, n_treated, n_total = \
+            #     self.dL.load_train_test_ihdp_random(csv_path,
+            #                                         0.8)
+
+            np_train_X, np_train_T, np_train_yf, np_train_ycf, \
+            np_test_X, np_test_T, np_test_yf, np_test_ycf,  np_train_mu0, np_test_mu0, \
+            np_train_mu1, np_test_mu1, n_treated, n_total = \
+                self.dL.load_custom(iter_id=iter_id)
             tensor_train = Utils.convert_to_tensor(np_train_X, np_train_T,
                                                    np_train_yf, np_train_ycf, np_train_mu0, np_train_mu1)
 

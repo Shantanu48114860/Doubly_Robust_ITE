@@ -25,9 +25,11 @@ class Utils:
 
     @staticmethod
     def test_train_split_custom(np_train_X, np_train_T, np_train_yf, np_train_ycf, iter_id,
+                                np_mu0, np_mu1,
                                 split_size=0.8):
         return sklearn.train_test_split(np_train_X, np_train_T, np_train_yf, np_train_ycf,
-                                        train_size=split_size)
+                                        np_mu0, np_mu1,
+                                        train_size=split_size, random_state=42)
 
     @staticmethod
     def convert_to_tensor_DR_net(X, T, Y_f, Y_cf, pi, mu):
