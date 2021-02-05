@@ -125,14 +125,9 @@ class Utils:
 
     @staticmethod
     def kl_divergence(mu1, mu2, sigma_1, sigma_2):
-        sigma_diag_1 = np.eye(sigma_1.shape[0]) * sigma_1
-        sigma_diag_2 = np.eye(sigma_2.shape[0]) * sigma_2
 
-        sigma_diag_2_inv = np.linalg.inv(sigma_diag_2)
-
-        kl = 0.5 * (np.log(np.linalg.det(sigma_diag_2) / np.linalg.det(sigma_diag_2))
-                    - mu1.shape[0] + np.trace(np.matmul(sigma_diag_2_inv, sigma_diag_1))
-                    + np.matmul(np.matmul(np.transpose(mu2 - mu1), sigma_diag_2_inv), (mu2 - mu1))
+        kl = np.sum(np.log(sigma_2 / sigma_1)
+                    + (sigma_1 ** 2 + (mu1 - mu2) ** 2) / (2 * sigma_2 ** 2) - 0.5
                     )
 
         return kl

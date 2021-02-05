@@ -117,40 +117,78 @@ class DataLoader:
         return np_covariates_X, np_treatment_T, np_outcomes_Y_f, np_outcomes_Y_cf, np_mu0, np_mu1
 
     @staticmethod
-    def custom_data_loader():
-        N = 5000
-        # sigma = dist.Uniform(-1, 1).sample([10, 10])
-        sigma = np.random.uniform(-1, 1, (10, 10))
-        # print(sigma+ (sigma.T))
-        cov = 0.5 * (sigma.dot(sigma.T))
-        # vary this
-        mean_T = np.empty(10)
-        mean_T.fill(7.5)
-        x_treated = np.random.multivariate_normal(mean_T, cov, 5000)
+    def custom_data_loader(N):
+        zx = dist.Bernoulli(0.5).sample([N])
+        zt = dist.Bernoulli(0.5).sample([N])
+        zyf = dist.Bernoulli(0.5).sample([N])
+        zycf = dist.Bernoulli(0.5).sample([N])
 
-        mean_C = np.zeros(10)
-        x_control = np.random.multivariate_normal(mean_C, cov, 5000)
+        z_t_1 = torch.cat((zx, zt, zyf, zycf), -1)
+        print(z_t_1.size())
+        print(z_t_1[0])
 
-        X = np.concatenate((x_treated, x_control), axis=0)
+        zx = dist.Bernoulli(0.6).sample([N])
+        zt = dist.Bernoulli(0.6).sample([N])
+        zyf = dist.Bernoulli(0.6).sample([N])
+        zycf = dist.Bernoulli(0.6).sample([N])
 
-        t_t = np.ones(N)
-        t_c = np.zeros(5000)
-        t = Utils.convert_to_col_vector(np.concatenate((t_t, t_c), axis=0))
+        z_t_0 = torch.cat((zx, zt, zyf, zycf), -1)
+        print(z_t_0.size())
+        print(z_t_0[0])
+
+        sigma_t_1 = 5 * z_t_1 + 3 * (1 - z_t_1)
+        sigma_t_0 = 5 * z_t_0 + 3 * (1 - z_t_0)
+        x_t_1 = dist.Normal(z_t_1, sigma_t_1).sample([10]).t()
+        x_t_0 = dist.Normal(z_t_0, sigma_t_0).sample([10]).t()
+
+        print("KL: ", Utils.kl_divergence(z_t_1.numpy(), z_t_0.numpy(),
+                                          sigma_t_1.numpy(), sigma_t_0.numpy()))
+
+        x = torch.cat((x_t_1, x_t_0), dim=0)
+        print(x.size())
+
+        t_t = torch.ones(4 * N)
+        t_c = torch.zeros(4 * N)
+        t = torch.cat((t_t, t_c), dim=0)
         print(t.shape)
 
-        bias_y = np.random.multivariate_normal(np.zeros(2), 0.1 * np.eye(2, 2), 2 * N)
-        w_y = np.random.uniform(-0.1, 0.1, (10, 2))
+        n_Y = dist.Normal(0, 0.1).sample([1])
+        print(n_Y.size())
+        w_y = dist.Uniform(-1, 1).sample([10, 1])
+        print((torch.mm(x, w_y).add(n_Y)).size())
+        y_t0 = (torch.mm(x, w_y) + n_Y).squeeze(-1)
 
-        y = X.dot(w_y) + bias_y
-        print(y.shape)
+        n_Y = dist.Normal(0, 0.1).sample([1])
+        print(n_Y.size())
+        w_y = dist.Uniform(-1, 1).sample([10, 1])
+        print((torch.mm(x, w_y).add(n_Y)).size())
+        y_t1 = (torch.mm(x, w_y) + n_Y).squeeze(-1)
+        # print(y.size())
 
-        np_X = np.concatenate((X, t, y), axis=1)
+        # y_t0 = y[:, 0]
+        # y_t1 = y[:, 1]
+
+        y_f = t * y_t1 + (1 - t) * y_t0
+        y_cf = (1 - t) * y_t1 + t * y_t0
+
+        np_x = x.numpy()
+        np_t = Utils.convert_to_col_vector(t.numpy())
+        np_y_f = Utils.convert_to_col_vector(y_f.numpy())
+        np_y_cf = Utils.convert_to_col_vector(y_cf.numpy())
+        np_mu0 = Utils.convert_to_col_vector(y_t0.numpy())
+        np_mu1 = Utils.convert_to_col_vector(y_t1.numpy())
+
+        print(np_x.shape)
+        print(np_t.shape)
+        # print(t[t==1].shape)
+        # print(t[t==0].shape)
+        print(np_mu0.shape)
+        print(np_mu1.shape)
+
+        np_X = np.concatenate((np_x, np_t, np_y_f, np_y_cf, np_mu0, np_mu1), axis=1)
+        print(np_X.shape)
         # np.random.shuffle(X)
         np.save("Dataset/Custom_GANITE_8.npy", np_X)
-
-        print("KL: ", Utils.kl_divergence(mean_T, mean_C, cov, cov))
-        print("X statistics: ")
-        print(np_X.shape)
 
     # def generate_data(N, alpha=0.25, beta=1, gamma=1):
     #     """
@@ -186,7 +224,7 @@ class DataLoader:
     #
     #     true_ite = y_t1 - y_t0
 
-    def generate_data(N, alpha=0.25, beta=1, gamma=1):
+    def generate_data_DR_VIDAL(N, alpha=0.25, beta=1, gamma=1):
         """
         This implements the generative process of [1], but using larger feature and
         latent spaces ([1] assumes ``feature_dim=1`` and ``latent_dim=5``).
@@ -351,15 +389,6 @@ class DataLoader:
 # DataLoader.generate_data_cevae(10000)
 
 
-# n_Y = dist.Normal(0, 0.1).sample([2])
-# print(n_Y)
-# w_y = dist.Uniform(-1, 1).sample([3, 2])
-# x = torch.rand((3, 3))
-# z = torch.mm(x, w_y)
-# print(z)
-# print(z+n_Y)
-# y = (torch.mm(x, w_y) + n_Y).squeeze(-1)
-# print("----")
-DataLoader.generate_data(1000)
+# DataLoader.generate_data_DR_VIDAL(1000)
 
-# DataLoader.custom_data_loader()
+DataLoader.custom_data_loader(1000)
