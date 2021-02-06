@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 csv_path = "MSE/DR_Results_Out_Final_1.csv"
 data_X = np.loadtxt(csv_path, delimiter=",", skiprows=1)
@@ -50,20 +50,21 @@ wo_DR_Probs_np = np.array([wo_DR_treated_DR_prob, wo_DR_control_DR_prob])
 
 N = 2
 
-ind = np.arange(N)
-width = 0.35
+ind = np.array([0, 0.5])
+print(ind)
+width = 0.3
 
 p1 = plt.bar(ind, DR_Probs_np, width)
 p2 = plt.bar(ind, wo_DR_Probs_np, width,
              bottom=DR_Probs_np)
 
-plt.ylabel('Percentage(%)')
+plt.ylabel('Percentage(%)', fontsize=10)
 plt.title('Twins')
-plt.xticks(ind, ('T=1', 'T=0'))
+plt.xticks(ind, ('T=1', 'T=0'), fontsize=10)
 plt.yticks(np.arange(0, 100, 20))
-plt.legend((p1[0], p2[0]), ('DR', 'W/o DR'))
+plt.legend((p1[0], p2[0]), ('DR', 'W/o DR'), loc='upper right')
 
 # plt.show()
 plt.draw()
-plt.savefig("Plots/Twins_BoxPlots_y_f.jpeg", dpi=220)
+plt.savefig("Plots/Twins_BoxPlots_y_f", dpi=220)
 plt.clf()

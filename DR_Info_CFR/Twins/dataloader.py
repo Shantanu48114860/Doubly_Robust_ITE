@@ -40,6 +40,10 @@ class DataLoader:
 
         n_treated = n_treated.shape[0]
         n_total = np_train_T.shape[0]
+
+        print("Treated: ", n_treated)
+        print("Control: ", n_total - n_treated)
+
         # print("Numpy Val Statistics:")
         # print(np_val_X.shape)
         # print(np_val_T.shape)

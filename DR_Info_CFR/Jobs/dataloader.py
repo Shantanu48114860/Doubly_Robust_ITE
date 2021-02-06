@@ -34,6 +34,14 @@ class DataLoader:
         print(np_test_X.shape)
         print(np_test_T.shape)
 
+        n_treated = np_train_T[np_train_T == 1]
+
+        n_treated = n_treated.shape[0]
+        n_total = np_train_T.shape[0]
+
+        print("Treated: ", n_treated)
+        print("Control: ", n_total - n_treated)
+
         # X -> x1.. x17, e, yf -> (19, 1)
         return np_train_X, np_train_T, np_train_e, np_train_yf, \
                np_test_X, np_test_T, np_test_e, np_test_yf
